@@ -356,8 +356,7 @@ with st.container(border=True):
                     System: Na podstawie dostarczonych informacji dokonaj opisu dataframe i dokonaj interpretacji wartości statystyk:
                     """
 
-                    # Ustaw klucz API OpenAI
-                    klucz = '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'
+                 
                     openai.api_key = klucz
 
                     completion = openai.ChatCompletion.create(
