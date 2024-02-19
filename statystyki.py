@@ -1568,47 +1568,54 @@ def korelacje_numeryczne(df, method='pearson', *vars):
     
     return corr_matrix
 
+import streamlit as st
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy import stats
 
-def analiza_regresji():
+def analiza_regresji(df, zmienna1, zmienna2):
     # Przygotowanie danych
-    X = df['dochody']
-    y = df['wydatki']
+    X = df[zmienna1]
+    y = df[zmienna2]
     X = sm.add_constant(X)  # dodanie stałej do modelu
     
     # Budowanie modelu regresji liniowej
     model = sm.OLS(y, X).fit()
     
-    print(model.summary())
+    # Wyświetlanie podsumowania modelu
+    st.subheader("Podsumowanie modelu regresji")
+    st.text(model.summary())
     
     # Wizualizacja zależności liniowej
-    plt.figure(figsize=(10, 6))
-    sns.regplot(x=df['dochody'], y=df['wydatki'], ci=None, line_kws={'color': 'red'})
-    plt.title('Regresja liniowa dochodów na wydatki')
-    plt.xlabel('Dochody')
-    plt.ylabel('Wydatki')
-    plt.show()
+    st.subheader("Zależność liniowa")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.regplot(x=df[zmienna1], y=df[zmienna2], ci=None, line_kws={'color': 'red'}, ax=ax)
+    st.pyplot(fig)
     
     # Testowanie normalności reszt za pomocą testu Shapiro-Wilka
     _, p_value = stats.shapiro(model.resid)
-    print(f"Test Shapiro-Wilka p-wartość: {p_value} (Normalność reszt, p > 0.05 oznacza normalność)")
+    st.write(f"Test Shapiro-Wilka p-wartość: {p_value} (Normalność reszt, p > 0.05 oznacza normalność)")
     
     # Sprawdzenie homoscedastyczności reszt
     _, p_value = stats.levene(model.fittedvalues, model.resid)
-    print(f"Test Levene'a p-wartość: {p_value} (Homoscedastyczność, p > 0.05 oznacza homoscedastyczność)")
+    st.write(f"Test Levene'a p-wartość: {p_value} (Homoscedastyczność, p > 0.05 oznacza homoscedastyczność)")
     
     # Wizualizacja reszt
-    plt.figure(figsize=(10, 6))
-    plt.scatter(model.fittedvalues, model.resid)
-    plt.axhline(y=0, color='r', linestyle='--')
-    plt.title('Reszty vs. Dopasowane wartości')
-    plt.xlabel('Dopasowane wartości')
-    plt.ylabel('Reszty')
-    plt.show()
+    st.subheader("Reszty vs. Dopasowane wartości")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.scatter(model.fittedvalues, model.resid)
+    ax.axhline(y=0, color='r', linestyle='--')
+    ax.set_title('Reszty vs. Dopasowane wartości')
+    ax.set_xlabel('Dopasowane wartości')
+    ax.set_ylabel('Reszty')
+    st.pyplot(fig)
     
     # Sprawdzenie autokorelacji reszt za pomocą testu Durbin-Watson
     dw = sm.stats.durbin_watson(model.resid)
-    print(f"Test Durbin-Watson: {dw} (2 oznacza brak autokorelacji, wartości <1 lub >3 wskazują na autokorelację)")
-
+    st.write(f"Test Durbin-Watson: {dw} (2 oznacza brak autokorelacji, wartości <1 lub >3 wskazują na autokorelację)")
 
 
 
@@ -1902,51 +1909,52 @@ def category_one_plot(df, zmienna, stat):
 
 # import seaborn as sns
 # import matplotlib.pyplot as plt
+import streamlit as st
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-# def cor_num(df, zmienna1, zmienna2):
-#     plt.figure(figsize=(7, 4))
-#     ax = sns.regplot(x=zmienna1, y=zmienna2, data=df, color="#3498db", marker='.', scatter_kws={'s': 10}, line_kws={'color': 'red'})
-#      # Obliczanie współczynników regresji
-#     x = df[zmienna1].values
-#     y = df[zmienna2].values
-#     slope, intercept = np.polyfit(x, y, 1)
-#     formula = f"y = {slope:.2f}x + {intercept:.2f}"
-#     ax.text(0.05, 0.95, formula, fontsize=8, ha="left", va="top", transform=ax.transAxes)
-#     sns.despine()
-#     plt.title(f'Regresja między {zmienna1} a {zmienna2}')
-#     plt.xlabel(zmienna1.capitalize())
-#     plt.ylabel(zmienna2.capitalize())
-#     plt.grid(True, which='both', linestyle='--', linewidth=0.1, color='gray')
-#     plt.show()
+def cor_num(df, zmienna1, zmienna2):
+    # Tworzenie wykresu zależności między zmiennymi
+    fig, ax = plt.subplots(figsize=(7, 4))
+    sns.regplot(x=zmienna1, y=zmienna2, data=df, color="#3498db", marker='.', scatter_kws={'s': 10}, line_kws={'color': 'red'}, ax=ax)
+    
+    # Obliczanie współczynników regresji
+    x = df[zmienna1].values
+    y = df[zmienna2].values
+    slope, intercept = np.polyfit(x, y, 1)
+    formula = f"y = {slope:.2f}x + {intercept:.2f}"
+    ax.text(0.05, 0.95, formula, fontsize=8, ha="left", va="top", transform=ax.transAxes)
+    
+    # Konfiguracja wykresu
+    ax.set_title(f'Regresja między {zmienna1} a {zmienna2}')
+    ax.set_xlabel(zmienna1.capitalize())
+    ax.set_ylabel(zmienna2.capitalize())
+    ax.grid(True, which='both', linestyle='--', linewidth=0.1, color='gray')
+    
+    # Wyświetlenie wykresu w interfejsie Streamlit
+    st.pyplot(fig)
 
-
-
-# def cor_num_join(df, zmienna1, zmienna2):
-#     plt.figure(figsize=(4, 3))
-#     sns.jointplot(x=zmienna1, y=zmienna2, data=df, kind="reg", color="#3498db",marker='.', scatter_kws={'s': 10})
-#     sns.despine()
-#     plt.grid(True, which='both', linestyle='--', linewidth=0.1, color='gray')
-#     plt.show()
-
-
-# def cor_num_matrix(df, zmienna1, zmienna2):
-#     df = dane[[zmienna1, zmienna2]]
-#     corr = df.corr()
-#     plt.figure(figsize=(6, 5))
-#     plt.title("wykres korelacji", color='gray', fontsize=10)
-#     sns.heatmap(corr, annot = True, vmin=-1, vmax=1, center= 0, cmap= "Blues", linewidths=1, linecolor='black',)
-#     sns.despine()
-#     plt.grid(True, which='both', linestyle='--', linewidth=0.1, color='gray')
-#     plt.show()
+import streamlit as st
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 
 
-# cor_num(dane, 'dochody', 'wydatki')
+def cor_num_matrix(df, zmienna1, zmienna2):
+    # Tworzenie macierzy korelacji i wyświetlenie jej za pomocą heatmap
+    df = df[[zmienna1, zmienna2]]
+    corr = df.corr()
+    plt.figure(figsize=(6, 5))
+    plt.title("Wykres korelacji", color='gray', fontsize=10)
+    sns.heatmap(corr, annot=True, vmin=-1, vmax=1, center=0, cmap="Blues", linewidths=1, linecolor='black')
+    sns.despine()
+    plt.grid(True, which='both', linestyle='--', linewidth=0.1, color='gray')
+    st.pyplot(plt)
 
-# cor_num_join(dane, 'dochody', 'wydatki')
-
-# cor_num_matrix(dane, 'dochody', 'wydatki')
 
 
 

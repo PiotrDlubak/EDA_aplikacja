@@ -272,6 +272,7 @@ with st.container(border=True):
                         alfa_norm = st.number_input('ustaw poziom alfa:', min_value=0.01, max_value= 0.05, step= 0.01, help = 'wybrać nalezy warośc')
                     
                 if typ_analizy== 'analiza jednej zmiennej kategorialnej':
+
                 
                     st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
                     st.write(':blue[ustaw parametry analizy:]')
@@ -283,7 +284,25 @@ with st.container(border=True):
                     with col3:
                         statystyki_k = st.checkbox('Miary statystyczne')
                     st.write('')
-                     
+
+
+
+                if typ_analizy== 'analiza dwóch zmiennych ilościowych':
+                
+                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
+                    st.write(':blue[ustaw parametry analizy:]')
+                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+
+                    with st.container(border=True):
+                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                        with col1:
+                            tabela_korelacji = st.checkbox('tabela  korelacji')  
+                        with col2:
+                            wykres = st.checkbox('Wykresy')
+                        with col3:
+                            regresja = st.checkbox('regresja liniowa')
+                        st.write('')
+                        
 
 
 
@@ -356,8 +375,8 @@ with st.container(border=True):
                     System: Na podstawie dostarczonych informacji dokonaj opisu dataframe i dokonaj interpretacji wartości statystyk:
                     """
 
-                 
-                    openai.api_key = klucz
+
+                    openai.api_key = st.secrets["klucz"]
 
                     completion = openai.ChatCompletion.create(
                         model="gpt-3.5-turbo",
@@ -426,7 +445,43 @@ with st.container(border=True):
                     # st.pyplot(sns.catplot(dane, x="dochody", y="ocena", kind="bar", height=4, palette=palette, estimator="sum"))
                     # st.pyplot(sns.catplot(dane, x="dochody", y="ocena", kind="swarm", height=4, palette=palette,  marker=".", linewidth=1,size=2,  edgecolor="#3498db"))
                     # st.pyplot(sns.catplot(dane, x="dochody", y="ocena", kind="boxen",color="#3498db",height=4))
-                     
+
+
+
+        if typ_analizy =='analiza dwóch zmiennych ilościowych':
+              
+            col1, col2, col3 = st.columns([2,2,4])
+            col1.write(f'Wybrany typ analizy:')
+            col2.info(f':red[{str.upper(typ_analizy)}]')
+            col1, col2 = st.columns([2,2])
+            wybrana_kolumna_1 = col1.selectbox("Wybierz kolumnę zmiennej nr 1", kolumny_numeryczne)  
+            wybrana_kolumna_2 = col2.selectbox("Wybierz kolumnę zmiennej nr 2 ", kolumny_numeryczne) 
+            if wybrana_kolumna_1 == wybrana_kolumna_2:
+                 st.info("wybierz 2 różne zmienne")
+
+            if tabela_korelacji:
+                with st.container(border=True):
+                    kor_p = ana.korelacje_numeryczne(st.session_state.df, 'pearson',wybrana_kolumna_1,wybrana_kolumna_2, )
+                    kor_k = ana.korelacje_numeryczne(st.session_state.df, 'kendall',wybrana_kolumna_1,wybrana_kolumna_2, )
+                    kor_s = ana.korelacje_numeryczne(st.session_state.df, 'spearman',wybrana_kolumna_1,wybrana_kolumna_2, )
+                    col1, col2, col3 = st.columns([2,2,2])
+                    col1.write("macierz korelcji wg medtody Pearsona")
+                    col1.dataframe(kor_p )
+                    col2.write("macierz korelcji wg medtody Pearsona")
+                    col2.dataframe(kor_k )
+                    col3.write("macierz korelcji wg medtody Pearsona")
+                    col3.dataframe(kor_s )
+                    print('')
+            if regresja:
+                with st.container(border=True):
+                    ana.cor_num(st.session_state.df,wybrana_kolumna_1,wybrana_kolumna_2)
+            if regresja:
+                with st.container(border=True):
+                    ana.analiza_regresji(st.session_state.df,wybrana_kolumna_1,wybrana_kolumna_2,)
+                    ana.cor_num_matrix(st.session_state.df,wybrana_kolumna_1,wybrana_kolumna_2,)
+
+                  
+
 
 
 
