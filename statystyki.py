@@ -1830,28 +1830,33 @@ def category_one_plot(df, zmienna, stat):
         ax.bar_label(container, fontsize=8, color='gray')
     sns.despine()
 
+import streamlit as st
+import seaborn as sns
+import matplotlib.pyplot as plt
 
+def category_two_plot(df, zmienna1, zmienna2, stat, facetgrid=False):
+    # stat{'count', 'percent', 'proportion', 'probability'}
+    if facetgrid:
+        g = sns.FacetGrid(data=df, col=zmienna1)
+        
+        def countplot_with_labels(data, **kwargs):
+            ax = sns.countplot(x=zmienna2, data=data, palette="husl", stat=stat, **kwargs)
+            for container in ax.containers:
+                ax.bar_label(container, fontsize=8, color='gray')
+                
+        g.map_dataframe(countplot_with_labels)
+        g.add_legend()
+        plt.tight_layout()
+        st.pyplot(plt)  # Wyświetlenie wykresu w Streamlit
+    else:
+        plt.figure(figsize=(6, 3)) 
+        palette = sns.color_palette("husl", df[zmienna2].nunique())
+        ax = sns.countplot(data=df, x=zmienna1, stat=stat, hue=zmienna2, palette=palette)
+        for container in ax.containers:
+            ax.bar_label(container, fontsize=8, color='gray')
+        sns.despine()
+        st.pyplot(plt)  # Wyświetlenie wykresu w Streamlit
 
-# def category_two_plot(df, zmienna1,zmienna2, stat, facetgrid = False):
-#     #stat{‘count’, ‘percent’, ‘proportion’, ‘probability’}
-#         if facetgrid == True:
-#             g = sns.FacetGrid(data=df, col=zmienna1)
-#             def countplot_with_labels(data, **kwargs):
-#                 ax = sns.countplot(x=zmienna2, data=data, palette="husl",stat = stat, **kwargs)
-#                 for container in ax.containers:
-#                     ax.bar_label(container, fontsize=8, color='gray')
-#             g.map_dataframe(countplot_with_labels)
-#             g.add_legend()
-#             plt.tight_layout()
-#         else:
-#             plt.figure(figsize=(6, 3)) 
-#             palette = sns.color_palette("husl", df[zmienna2].nunique())
-#             ax = sns.countplot( data=df, x=zmienna1, stat = stat, hue= zmienna2, palette=palette)
-#             for container in ax.containers:
-#                 ax.bar_label(container, fontsize=8, color='gray')
-#             sns.despine()
-#         plt.show()
-    
 
 
  

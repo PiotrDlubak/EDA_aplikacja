@@ -306,6 +306,24 @@ with st.container(border=True):
 
 
 
+                if typ_analizy== 'analiza dwóch kategorialnych':
+                
+                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
+                    st.write(':blue[ustaw parametry analizy:]')
+                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+
+                    with st.container(border=True):
+                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                        with col1:
+                            tabele_kontygencji = st.checkbox('tabele kontygencji')  
+
+                        with col2:
+                            miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
+                        with col3:
+                            wykresy_k2 = st.checkbox('Wykresy')
+
+
+
 
     with tab5:
 
@@ -483,7 +501,50 @@ with st.container(border=True):
                   
 
 
+        if typ_analizy =='analiza dwóch kategorialnych':
+                
+                col1, col2, col3 = st.columns([2,2,4])
+                col1.write(f'Wybrany typ analizy:')
+                col2.info(f':red[{str.upper(typ_analizy)}]')
+                col1, col2 = st.columns([2,2])
+                wybrana_kolumna_1k = col1.selectbox("Wybierz kolumnę zmiennej nr 1", kolumny_kategorialne)  
+                wybrana_kolumna_2k = col2.selectbox("Wybierz kolumnę zmiennej nr 2 ", kolumny_kategorialne) 
+                if wybrana_kolumna_1k == wybrana_kolumna_2k:
+                    st.info("wybierz 2 różne zmienne")
 
+                if tabele_kontygencji:
+                    with st.container(border=True):
+                        st.write('liczebności:')
+                        st.dataframe(ana.rozklady_cat(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'licz_all'))
+                        st.write('częstości całkowite %:')
+                        st.dataframe(ana.rozklady_cat(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'proc_all'))
+                        st.write('częstości wg kolumn %: ')
+                        st.dataframe(ana.rozklady_cat(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'proc_col'))
+                        st.write('częstosci wg wierszy %:')
+                        st.dataframe(ana.rozklady_cat(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'proc_row'))
+
+                    if miary_zaleznosci_k:
+                        with st.container(border=True):
+                            col1, col2, col3, col4 = st.columns(4)
+                            col1.write('liczebności:')
+                    if miary_zaleznosci_k:
+                        with st.container(border=True):
+                            st.write('Miary zależnosci:')
+                            st.dataframe(ana.korelacje_nom(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k))
+
+                    if wykresy_k2:
+                        with st.container(border=True):   
+                            st.write('liczebności:')
+                            col1, col2 = st.columns([3,1])
+                            col1.pyplot(ana.category_two_plot(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'count', facetgrid=True))
+                            col1, col2 = st.columns([3,1])
+                            col1.pyplot(ana.category_two_plot(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'percent', facetgrid=True))
+                            col1, col2 = st.columns([3,1])
+                            col1.pyplot(ana.category_two_plot(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'proportion', facetgrid=True))
+
+
+
+                    
 
         with tab7:
             
