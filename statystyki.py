@@ -1396,16 +1396,6 @@ def stat(data, zmienne):
                             'kl_wsp_zmien': odch_std / średnia,
                             'poz_wsp_zmien': IQR / Q2,
                             'moda': moda,
-                            # 'K-p współczynnik skośności': (średnia - moda) / std if not np.isnan(moda) else np.nan,
-                            # 'K-p wskaźnik skośności': (średnia - moda) if not np.isnan(moda) else np.nan,
-                            # 'P wskaźnik skośności': ((Q1 + Q3) - Q2) / (2 * Q2) if Q2 != 0 else np.nan,
-                            # 'kwartylowy wskaźnik asymetrii': (Q1 + Q3) - (2 * Q2),
-                            # 'trzeci moment centralny': ((df - średnia) ** 3).mean(),
-                            # 'kwartylowy współczynnik skośności': (Q3 + Q1 - 2 * Q2) / IQR if IQR != 0 else np.nan,
-                            # 'trzeci moment centralny standaryzowany': ((df - średnia) ** 3).mean() / (odch_std ** 3),
-                            # 'czwarty moment centralny': ((df - średnia) ** 4).mean(),
-                            # 'czwarty moment centralny standaryzowany': ((df - średnia) ** 4).mean() / (odch_std ** 4),
-                            # 'exces': df.kurtosis() - 3,
                             'skośność': df.skew(),
                             'kurtoza': df.kurtosis()
                         }
@@ -1416,6 +1406,45 @@ def stat(data, zmienne):
 
 
 
+
+def stat_kat(data, zmienna_numeryczna, zmienna_kategoryczna):
+    wyniki_all = {}
+    grouped_data = data.groupby(zmienna_kategoryczna)[zmienna_numeryczna]
+    for group_name, group_data in grouped_data:
+        średnia = group_data.mean()
+        odch_std = group_data.std(ddof=1)
+        rozstęp = group_data.max() - group_data.min()
+        Q1 = group_data.quantile(.25)
+        Q2 = group_data.quantile(.5)
+        Q3 = group_data.quantile(.75)
+        IQR = Q3 - Q1
+        moda = group_data.mode().iloc[0] if not group_data.mode().empty else np.nan
+        wyniki = {
+            'liczba': group_data.count(),
+            'suma': group_data.sum(),
+            'min': group_data.min(),
+            'max': group_data.max(),
+            'średnia': średnia,
+            'rozstęp': rozstęp,
+            'p_10%': group_data.quantile(.1),
+            'Q1_25%': Q1,
+            'Q2_50%': Q2,
+            'Q3_75%': Q3,
+            'p_90%': group_data.quantile(.9),
+            'IQR': IQR,
+            'odch_cwiar': IQR / 2,
+            'odchylenie przeciętne': np.mean(np.abs(group_data - średnia)) / średnia * 100,
+            'wariancja': group_data.var(ddof=1),
+            'odch_std': odch_std,
+            'błąd_odch_std': odch_std / np.sqrt(group_data.count()),
+            'kl_wsp_zmien': odch_std / średnia,
+            'poz_wsp_zmien': IQR / Q2,
+            'moda': moda,
+            'skośność': group_data.skew(),
+            'kurtoza': group_data.kurtosis()
+        }
+        wyniki_all[group_name] = wyniki
+    return wyniki_all
 
 
 
@@ -1506,6 +1535,9 @@ def korelacje_nom_num(df, var1, var2):
     std = df[var2].std()
     Point_Biserial= np.round((y1 - y0) * np.sqrt(p[1] * (1 - p[1])) / std,3)
     print(f'współczynnik korelacji pomiędzy [{var1}] a [{var2}]  --> Point_Biserial = {Point_Biserial}')
+
+
+
 
 
 
@@ -1739,6 +1771,11 @@ def hist_plot(df, zmienna_num, stat,cumulative=False):
 
 
 
+
+
+
+
+
 def kde_plot(df, zmienna, cumulative = False):
     fig, ax = plt.subplots()
     # count: the number of observations
@@ -1814,8 +1851,8 @@ def swarm_plot(df, zmienna):
 # sns.catplot(dane, x="dochody", y="ocena", kind="swarm", height=4, palette=palette,  marker=".", linewidth=1,size=2,  edgecolor="#3498db")
 # sns.catplot(dane, x="dochody", y="ocena", kind="boxen",color="#3498db",height=4)
 
-# import seaborn as sns
-# import matplotlib.pyplot as plt
+# # import seaborn as sns
+# # import matplotlib.pyplot as plt
 
 
 
@@ -1886,12 +1923,21 @@ def category_two_plot(df, zmienna1, zmienna2, stat, facetgrid=False):
 
 
 # tabela_kontyngencji = pd.crosstab(index=dane['płeć'], columns=dane['ocena'])
-# plt.figure(figsize=(6, 3)) 
-# sns.heatmap(tabela_kontyngencji, annot=True, cmap="YlGnBu", fmt="d")
+
+
+# # Tworzenie heatmapy
+# plt.figure(figsize=(6, 3))
+# sns.heatmap(tabela_kontyngencji.pivot("Płeć", "Ocena", "Liczba"), annot=True, cmap="YlGnBu", fmt="d")
 # plt.title('Heatmapa tabeli kontyngencji: Płeć vs Ocena')
 # plt.xlabel('Ocena')
 # plt.ylabel('Płeć')
-# plt.show()
+# # Wyświetlanie heatmapy za pomocą Streamlit
+# st.pyplot()
+
+
+
+
+
 
 
 
@@ -1919,6 +1965,8 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+
 
 def cor_num(df, zmienna1, zmienna2):
     # Tworzenie wykresu zależności między zmiennymi
@@ -1959,6 +2007,9 @@ def cor_num_matrix(df, zmienna1, zmienna2):
     sns.despine()
     plt.grid(True, which='both', linestyle='--', linewidth=0.1, color='gray')
     st.pyplot(plt)
+
+
+
 
 
 
@@ -2040,3 +2091,67 @@ def cor_num_matrix(df, zmienna1, zmienna2):
 
 
 
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+# import pandas as pd
+
+# # Przykładowe dane
+# data = {
+#     'Płeć': ['Mężczyzna', 'Kobieta', 'Kobieta', 'Mężczyzna', 'Kobieta'],
+#     'Grupa wiekowa': ['18-25', '26-35', '26-35', '36-45', '36-45'],
+#     'Wzrost': [170, 165, 155, 180, 175],
+#     'Waga': [70, 60, 55, 85, 70]
+# }
+
+# # Tworzenie ramki danych
+# df = pd.DataFrame(data)
+
+# # Grupowanie danych według dwóch zmiennych kategorialnych i obliczanie statystyk opisowych dla każdej grupy
+# statystyki_opisowe = df.groupby(['Płeć', 'Grupa wiekowa']).describe().reset_index()
+
+# # Wyświetlenie ramki danych z wynikami
+# print(statystyki_opisowe)
+
+import streamlit as st
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# # Przykładowe dane
+# data = {
+#     'Płeć': ['Mężczyzna', 'Kobieta', 'Kobieta', 'Mężczyzna', 'Kobieta'],
+#     'Grupa wiekowa': ['18-25', '26-35', '26-35', '36-45', '36-45'],
+#     'Wzrost': [170, 165, 155, 180, 175],
+#     'Waga': [70, 60, 55, 85, 70]
+# }
+
+# # Tworzenie ramki danych
+# df = pd.DataFrame(data)
+
+# # Grupowanie danych według dwóch zmiennych kategorialnych i obliczanie statystyk opisowych dla każdej grupy
+# statystyki_opisowe = df.groupby(['Płeć', 'Grupa wiekowa']).describe().reset_index()
+
+# # Wyświetlanie wykresów za pomocą Streamlit
+# st.title('Statystyki opisowe względem płci i grupy wiekowej')
+# st.write(statystyki_opisowe)
+
+# # Wykresy za pomocą Seaborn
+# plt.figure(figsize=(12, 6))
+
+# # Wykres dla Wzrostu
+# plt.subplot(1, 2, 1)
+# sns.barplot(data=statystyki_opisowe, x='Płeć', y=('Wzrost', 'mean'), hue='Grupa wiekowa')
+# plt.title('Średni wzrost w grupach wiekowych i płci')
+# plt.xlabel('Płeć')
+# plt.ylabel('Średni wzrost')
+
+# # Wykres dla Wagi
+# plt.subplot(1, 2, 2)
+# sns.barplot(data=statystyki_opisowe, x='Płeć', y=('Waga', 'mean'), hue='Grupa wiekowa')
+# plt.title('Średnia waga w grupach wiekowych i płci')
+# plt.xlabel('Płeć')
+# plt.ylabel('Średnia waga')
+
+# # Wyświetlanie wykresów za pomocą Streamlit
+# st.pyplot(plt)

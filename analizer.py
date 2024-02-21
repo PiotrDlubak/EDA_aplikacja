@@ -237,7 +237,7 @@ with st.container(border=True):
             with st.container(border=True):
                 typ_analizy = st.radio(':blue[Wywierz typ analizy: ]',
                                        ['analiza jednej zmiennej numerycznej', 'analiza jednej zmiennej kategorialnej', 'analiza dwóch zmiennych ilościowych', 'analiza dwóch kategorialnych', 
-                                        'analiza zmiennej numerycznej i kategorialnej'], horizontal=True)
+                                        'analiza zmiennej numerycznej i kategorialnej', 'analiza 2 zmienne numeryczne i 1 kategorialna'], horizontal=True)
 
             with st.container(border=True):
 
@@ -285,8 +285,6 @@ with st.container(border=True):
                         statystyki_k = st.checkbox('Miary statystyczne')
                     st.write('')
 
-
-
                 if typ_analizy== 'analiza dwóch zmiennych ilościowych':
                 
                     st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
@@ -304,8 +302,6 @@ with st.container(border=True):
                         st.write('')
                         
 
-
-
                 if typ_analizy== 'analiza dwóch kategorialnych':
                 
                     st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
@@ -321,6 +317,41 @@ with st.container(border=True):
                             miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
                         with col3:
                             wykresy_k2 = st.checkbox('Wykresy')
+
+
+                if typ_analizy== 'analiza zmiennej numerycznej i kategorialnej':
+                
+                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
+                    st.write(':blue[ustaw parametry analizy:]')
+                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+
+                    with st.container(border=True):
+                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                        with col1:
+                            statystyki_w_grupach = st.checkbox('Statystyki wg poziomów zmiennej kategorialnej')  
+
+                        #with col2:
+                            #miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
+                        with col3:
+                            wykresy_w_grupach = st.checkbox('Wykresy')          
+
+
+                if typ_analizy== 'analiza 2 zmienne numeryczne i 1 kategorialna':
+
+                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
+                    st.write(':blue[ustaw parametry analizy:]')
+                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+
+                    with st.container(border=True):
+                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                        with col1:
+                            kor_w_grupach = st.checkbox(' korelacje wg poziomów zmiennej kategorialnej')  
+
+                        with col3:
+                            wykresy_kor_w_grupach = st.checkbox('Wykresy')          
+
+
+
 
 
 
@@ -455,15 +486,6 @@ with st.container(border=True):
                      
 
 
-                    # st.pyplot(sns.displot(dane, x=x, kind="hist", col = 'ocena',  height=3, color="#3498db", bins = 8, kde = True))
-                    # st.pyplot(sns.displot(dane, x="dochody", kind="ecdf", col = 'ocena',  height=3, color="#3498db"))
-                    # st.pyplot(sns.catplot(dane, x="dochody", y="ocena", kind="box", height=4, palette=palette))
-                    # st.pyplot(sns.catplot(dane, x="dochody", y="ocena", kind="violin", height=4, palette=palette))
-                    # st.pyplot(sns.catplot(dane, x="dochody", y="ocena", kind="point", height=4, palette=palette, estimator='mean', errorbar=("ci",95)))
-                    # st.pyplot(sns.catplot(dane, x="dochody", y="ocena", kind="bar", height=4, palette=palette, estimator="sum"))
-                    # st.pyplot(sns.catplot(dane, x="dochody", y="ocena", kind="swarm", height=4, palette=palette,  marker=".", linewidth=1,size=2,  edgecolor="#3498db"))
-                    # st.pyplot(sns.catplot(dane, x="dochody", y="ocena", kind="boxen",color="#3498db",height=4))
-
 
 
         if typ_analizy =='analiza dwóch zmiennych ilościowych':
@@ -542,7 +564,93 @@ with st.container(border=True):
                             col1, col2 = st.columns([3,1])
                             col1.pyplot(ana.category_two_plot(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'proportion', facetgrid=True))
 
+                            tabela_kontyngencji = pd.crosstab(index=st.session_state.df[wybrana_kolumna_1k], columns=st.session_state.df[wybrana_kolumna_2k])
+                            # Tworzenie heatmapy
+                            plt.figure(figsize=(6, 3))
+                            sns.heatmap(tabela_kontyngencji, annot=True, cmap="YlGnBu", fmt="d")
+                            plt.title('Heatmapa tabeli kontyngencji:')
+                            st.pyplot()
 
+
+
+
+        if typ_analizy =='analiza zmiennej numerycznej i kategorialnej':
+            with st.container(border=True):
+                col1, col2, col3 = st.columns([2,2,4])
+                col1.write(f'Wybrany typ analizy:')
+                col2.info(f':red[{str.upper(typ_analizy)}]')
+                col1, col2 = st.columns([2,2])
+                wybrana_kolumna_num = col1.selectbox("Wybierz zmienna numeryczną", kolumny_numeryczne)  
+                wybrana_kolumna_kat = col2.selectbox("Wybierz zmienną kategorialną ", kolumny_kategorialne) 
+   
+
+                if statystyki_w_grupach:
+                    with st.container(border=True):
+                        st.write('Wartości parametrów statystycznych wg poziomów zmiennej kategorialnej:')
+                        wyniki = ana.stat_kat(st.session_state.df,wybrana_kolumna_num, wybrana_kolumna_kat)
+                        st.dataframe(wyniki, width=800, height=810)
+                        
+                if wykresy_w_grupach:
+                    st.divider()
+                   
+                    palette = sns.color_palette("husl", 8)
+                    col1, col2, col3 = st.columns([2,3,2])
+                    col2.subheader("Histogram")
+                    col2.pyplot(sns.displot(data=st.session_state.df, x=wybrana_kolumna_num, col=wybrana_kolumna_kat, kind="hist", height=3, color="#3498db", bins=8, kde=True))
+                    col2.subheader("ECDF")
+                    col2.pyplot(sns.displot(data=st.session_state.df, x=wybrana_kolumna_num, col=wybrana_kolumna_kat, kind="ecdf",  height=3, color="#3498db"))
+                    col2.subheader("Box Plot")
+                    col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="box", height=4, palette=palette))
+                    col2.subheader("Violin Plot")
+                    col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="violin", height=4, palette="Set2"))
+                    col2.subheader("Point Plot")
+                    col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="point", height=4, palette="Set2", estimator='mean', ci=95))                       
+                    col2.subheader("Bar Plot")
+                    col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="bar", height=4, palette="Set2", estimator="sum"))
+                    col2.subheader("Swarm Plot")
+                    col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="swarm", height=4, palette="Set2", marker=".", linewidth=1, size=2, edgecolor="#3498db")) 
+                    col2.subheader("Boxen Plot")
+                    col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="boxen", color="#3498db", height=4))
+    
+
+        if typ_analizy== 'analiza 2 zmienne numeryczne i 1 kategorialna': 
+            with st.container(border=True):
+                col1, col2, col3 = st.columns([2,2,4])
+                col1.write(f'Wybrany typ analizy:')
+                col2.info(f':red[{str.upper(typ_analizy)}]')
+                col1, col2 = st.columns([2,2])
+                wybrana_kolumna_num_1 = col1.selectbox("Wybierz zmienna numeryczną 1", kolumny_numeryczne)  
+                wybrana_kolumna_num_2 = col1.selectbox("Wybierz zmienna numeryczną 2", kolumny_numeryczne)  
+                wybrana_kolumna_kate = col2.selectbox("Wybierz zmienną kategorialną 1 ", kolumny_kategorialne)
+                
+                if kor_w_grupach:
+                    wyn = ana.korelacje_num2_nom(st.session_state.df, 'pearson', wybrana_kolumna_kate,wybrana_kolumna_num_1,wybrana_kolumna_num_2 )
+                    st.dataframe(wyn)
+                    st.pyplot(sns.relplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate, height=4))
+                    # sns.relplot(data=dane, x="dochody", y="wydatki", col="płeć", height=4,color="#3498db")
+                    # sns.relplot(data=dane, x="dochody", y="wydatki", hue="płeć", col="zdał", height=4,palette=["b", "r"], sizes=(10, 100))
+
+ 
+                    # sns.lmplot(data=dane, x="dochody", y="wydatki", hue="zdał")
+
+                    # sns.lmplot(
+                    #     data=dane, x="dochody", y="wydatki",
+                    #     hue="ocena", col="płeć", height=4,
+                    # )
+
+                    # sns.lmplot(
+                    #     data=dane, x="dochody", y="wydatki",
+                    #     col="ocena", row="płeć", height=3,
+                    #     facet_kws=dict(sharex=False, sharey=False),
+                    # )
+
+
+             
+
+
+
+
+             
 
                     
 
@@ -570,3 +678,26 @@ with st.container(border=True):
 
                     if st.button('Pytaj'):
                         st.markdown(completion.choices[0].message['content'])
+
+
+            # import ollama
+            # with st.container(border=True):
+                
+            #         st.write('')
+            #         st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
+
+            #         prompt = st.chat_input("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego , nauki o danych:")
+            #         if prompt:
+            #             with st.chat_message("user"):
+            #                 st.write(prompt)
+                             
+
+            #         with st.spinner(" przetwarzam......."):
+
+            #             response = ollama.chat(model='tinyllama', messages=[
+            #             {
+            #                 'role': 'user',
+            #                 'content': 'Why is the sky blue?',
+            #             },
+            #             ])
+            #             st.write(response['message']['content'])
