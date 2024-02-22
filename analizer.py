@@ -49,7 +49,10 @@ from statsmodels.stats.power import TTestPower
 
 import statystyki as ana
 
-
+import random
+from scipy.stats import zscore
+import re
+import math
 
 import time
 import openai
@@ -223,6 +226,21 @@ with st.container(border=True):
             st.write("Brak danych do wyświetlenia.")
 
 
+        st.dataframe(ana.informacje_o_dataframe(st.session_state.df))
+        st.write(st.session_state.df.duplicated().any())
+        duplicates = st.session_state.df[st.session_state.df.duplicated()]
+        st.dataframe(duplicates)
+        ana.braki_sprawdzenie(st.session_state.df)
+
+        st.dataframe(ana.outliers(st.session_state.df,'dochody'))
+
+
+
+
+
+
+
+
 
 
     with tab4:    # parametry analizy
@@ -237,7 +255,7 @@ with st.container(border=True):
             with st.container(border=True):
                 typ_analizy = st.radio(':blue[Wywierz typ analizy: ]',
                                        ['analiza jednej zmiennej numerycznej', 'analiza jednej zmiennej kategorialnej', 'analiza dwóch zmiennych ilościowych', 'analiza dwóch kategorialnych', 
-                                        'analiza zmiennej numerycznej i kategorialnej', 'analiza 2 zmienne numeryczne i 1 kategorialna'], horizontal=True)
+                                        'analiza zmiennej numerycznej i kategorialnej', 'analiza 2 zmienne numeryczne i 1 kategorialna'],)
 
             with st.container(border=True):
 
@@ -626,33 +644,67 @@ with st.container(border=True):
                 if kor_w_grupach:
                     wyn = ana.korelacje_num2_nom(st.session_state.df, 'pearson', wybrana_kolumna_kate,wybrana_kolumna_num_1,wybrana_kolumna_num_2 )
                     st.dataframe(wyn)
-                    st.pyplot(sns.relplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate, height=4))
-                    # sns.relplot(data=dane, x="dochody", y="wydatki", col="płeć", height=4,color="#3498db")
-                    # sns.relplot(data=dane, x="dochody", y="wydatki", hue="płeć", col="zdał", height=4,palette=["b", "r"], sizes=(10, 100))
+                    st.pyplot(sns.relplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate))
+                    st.pyplot(sns.relplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, col=wybrana_kolumna_kate ))
+                    st.pyplot(sns.lmplot(data=st.session_state.df,  x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate))
 
- 
-                    # sns.lmplot(data=dane, x="dochody", y="wydatki", hue="zdał")
+                   
+                    st.pyplot(sns.pairplot(st.session_state.df, x_vars=wybrana_kolumna_num_1, y_vars=wybrana_kolumna_num_2,diag_kind="hist"))
+
+                    st.pyplot(sns.lmplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate))
+
+
+
+                    # 2n - 2k
 
                     # sns.lmplot(
-                    #     data=dane, x="dochody", y="wydatki",
+                    #     data=st.session_state.df, x =wybrana_kolumna_num_1, y = wybrana_kolumna_num_2,
                     #     hue="ocena", col="płeć", height=4,
                     # )
 
                     # sns.lmplot(
-                    #     data=dane, x="dochody", y="wydatki",
+                    #     data=st.session_state.df, x=wybrana_kolumna_num_1,y=wybrana_kolumna_num_2,
                     #     col="ocena", row="płeć", height=3,
                     #     facet_kws=dict(sharex=False, sharey=False),
                     # )
 
 
-             
 
 
-
-
-             
-
+                # 1n -2 k
                     
+
+
+                    # # Grupowanie danych według dwóch zmiennych kategorialnych i obliczanie statystyk opisowych dla każdej grupy
+                    # statystyki_opisowe = st.session_state.df.groupby(['Płeć', 'Grupa wiekowa']).describe().reset_index()
+
+                    # # Wyświetlanie wykresów za pomocą Streamlit
+                    # st.title('Statystyki opisowe względem płci i grupy wiekowej')
+                    # st.write(statystyki_opisowe)
+
+                    # # Wykresy za pomocą Seaborn
+                    # plt.figure(figsize=(12, 6))
+
+                    # # Wykres dla Wzrostu
+                    # plt.subplot(1, 2, 1)
+                    # sns.barplot(data=statystyki_opisowe, x='Płeć', y=('Wzrost', 'mean'), hue='Grupa wiekowa')
+                    # plt.title('Średni wzrost w grupach wiekowych i płci')
+                    # plt.xlabel('Płeć')
+                    # plt.ylabel('Średni wzrost')
+
+                    # # Wykres dla Wagi
+                    # plt.subplot(1, 2, 2)
+                    # sns.barplot(data=statystyki_opisowe, x='Płeć', y=('Waga', 'mean'), hue='Grupa wiekowa')
+                    # plt.title('Średnia waga w grupach wiekowych i płci')
+                    # plt.xlabel('Płeć')
+                    # plt.ylabel('Średnia waga')
+
+                    # # Wyświetlanie wykresów za pomocą Streamlit
+                    # st.pyplot(plt)
+
+
+
+
 
         with tab7:
             

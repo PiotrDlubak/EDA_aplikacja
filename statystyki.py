@@ -36,6 +36,13 @@ from statsmodels.stats.anova import anova_lm
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from statsmodels.stats.power import TTestPower
 
+
+import random
+from scipy.stats import zscore
+import re
+import math
+
+
 # #-------------------------------------------------------------------------------------------------
 # #                                 PRZEDZIAŁY UFNOSCI
 # #-------------------------------------------------------------------------------------------------
@@ -1296,6 +1303,143 @@ def kruskal_wallis_test(df, col_group, col_value):
 #                              STATYSTYKA OPISOWA 
 #--------------------------------------------------------------------
 
+
+import pandas as pd
+
+def informacje_o_dataframe(df):
+    informacje = []
+
+    for kolumna in df.columns:
+        typ_kolumny = df[kolumna].dtype
+        unikalne_wartosci = df[kolumna].nunique()
+        puste_wartosci = df[kolumna].isnull().sum()
+        niepuste_wartosci = df[kolumna].count()
+
+        if typ_kolumny == 'object':
+            wartosci_unikalne = df[kolumna].unique()
+            liczba_zer = None
+            rodzaj_kolumny = 'Tekstowa'
+        else:
+            wartosci_unikalne = None
+            liczba_zer = df[kolumna].tolist().count(0)
+            rodzaj_kolumny = 'Numeryczna'
+
+        informacje.append([kolumna, typ_kolumny, unikalne_wartosci, puste_wartosci, niepuste_wartosci, wartosci_unikalne, liczba_zer, rodzaj_kolumny])
+
+    informacje_df = pd.DataFrame(informacje, columns=['Nazwa kolumny', 'Typ kolumny', 'Liczba unikalnych wartości', 'Liczba wartości pustych', 'Liczba wartości niepustych', 'Wartości unikalne', 'Liczba zer', 'Rodzaj kolumny'])
+    return informacje_df
+
+
+
+
+
+import streamlit as st
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def braki_sprawdzenie(dane):
+    liczba = dane.isnull().sum().sum()
+    proc = (liczba / (dane.shape[0]*dane.shape[1])*100).round(2)
+    
+    if liczba == 0:
+        st.write('Analiza brakujących danych:')
+        st.write('='*45)
+        st.write('W tabeli nie stwierdzono brakujących danych!')
+    else:
+        st.write('Analiza brakujących danych:')
+        st.write('='*45)
+        st.write(f'Liczba brakujących danych w tabeli: {liczba}')
+        st.write(f'Procent brakujących danych w tabeli: {proc}%')
+        st.write('='*45)
+        
+        rows_with_missing_data = dane[dane.isnull().any(axis=1)]
+        brakujace_dane = rows_with_missing_data.isnull().sum(axis=0)
+        udzial_brakujacych_danych = ((rows_with_missing_data.isnull().sum(axis=0) / dane.shape[0])*100).round(1)
+        wyniki = pd.DataFrame({'liczba': brakujace_dane, 'proc': udzial_brakujacych_danych})
+        
+        st.write('Brakujące dane w zmiennych (kolumny):')
+        st.dataframe(wyniki)
+
+        rows_with_missing_data = dane[dane.isnull().any(axis=1)]
+        brakujace_dane = rows_with_missing_data.isnull().sum(axis=1)
+        udzial_brakujacych_danych = (rows_with_missing_data.isnull().sum(axis=1) / dane.shape[1]*100).round(1)
+        wyniki = pd.DataFrame({'liczba': brakujace_dane, 'proc': udzial_brakujacych_danych})
+        
+        st.write('='*45)
+        st.write('Brakujące dane w obserwacjach (wiersze):')
+        st.dataframe(wyniki)
+
+        fig, ax = plt.subplots(figsize=(9.5, 4))
+        sns.heatmap(dane.isnull(), cmap='coolwarm', ax=ax)
+        st.pyplot(fig)
+
+        rows_with_missing_data = dane[dane.isnull().any(axis=1)]
+        st.write('Tabela z brakującymi danymi:')
+        st.dataframe(rows_with_missing_data)
+
+
+def outliers(df, var):
+    data = df[var]
+ 
+    def detect_outliers_iqr(data):
+        q1, q3 = np.percentile(data, [25, 75])
+        iqr = q3 - q1
+        lower_bound = q1 - (1.5 * iqr)
+        upper_bound = q3 + (1.5 * iqr)
+        outliers_IQR = [i for i, x in enumerate(data) if x < lower_bound or x > upper_bound]
+        return outliers_IQR
+
+    def detect_outliers_mean_std(data):
+        mean = np.mean(data)
+        std = np.std(data)
+        lower_bound = mean - (3 * std)
+        upper_bound = mean + (3 * std)
+        outliers_mean_std = [i for i, x in enumerate(data) if x < lower_bound or x > upper_bound]
+        return outliers_mean_std
+
+    def detect_outliers_zscore(data):
+        threshold = 2
+        z_scores = zscore(data)
+        outliers_zscore = [i for i, z in enumerate(z_scores) if abs(z) > threshold]
+        return outliers_zscore
+
+    def detect_outliers_winsorizing(data):
+        lower_bound, upper_bound = np.percentile(data, [5, 95])
+        data = np.clip(data, lower_bound, upper_bound)
+        outliers_winsorizing = [i for i, x in enumerate(data) if x < lower_bound or x > upper_bound]
+        return outliers_winsorizing
+
+    # Reshape the data to a 2D array
+    data = np.array(data).reshape(-1, 1)
+
+    outliers_IQR = detect_outliers_iqr(data)
+    outliers_mean_std = detect_outliers_mean_std(data)
+    outliers_zscore = detect_outliers_zscore(data)
+    outliers_winsorizing = detect_outliers_winsorizing(data)
+
+    df = pd.DataFrame(data)
+    df['Odstające_IQR'] = np.where(df.index.isin(outliers_IQR), -1, 1)
+    df['Odstające_mean_std'] = np.where(df.index.isin(outliers_mean_std), -1, 1)
+    df['Odstające_Zscore'] = np.where(df.index.isin(outliers_zscore), -1, 1)
+    df['Odstające_Winsorizing'] = np.where(df.index.isin(outliers_winsorizing), -1, 1)
+   
+    # Dodatkowa kolumna: Czy_Odstające
+    df['Czy_Odstające'] = np.where((df['Odstające_IQR'] == -1) |
+                                (df['Odstające_mean_std'] == -1) |
+                                (df['Odstające_Zscore'] == -1) |
+                                (df['Odstające_Winsorizing'] == -1) , True, False)
+    df = df.loc[df['Czy_Odstające'] == True]
+    df = df.rename(columns={0: var})  # Zmiana nazwy kolumny 0 na Nazwa_Zmiennej
+    
+    # Dodaj kolumnę "ile_ident"
+    df['ile_ident'] = df[['Odstające_IQR', 'Odstające_mean_std', 'Odstające_Zscore', 'Odstające_Winsorizing']].apply(lambda row: row.value_counts().get(-1, 0), axis=1)
+    
+    return df
+
+
+
+
 # Tabele
 
 #     Tabele liczności i rozkłady empiryczne
@@ -2118,16 +2262,16 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# # Przykładowe dane
-# data = {
-#     'Płeć': ['Mężczyzna', 'Kobieta', 'Kobieta', 'Mężczyzna', 'Kobieta'],
-#     'Grupa wiekowa': ['18-25', '26-35', '26-35', '36-45', '36-45'],
-#     'Wzrost': [170, 165, 155, 180, 175],
-#     'Waga': [70, 60, 55, 85, 70]
-# }
+# # # Przykładowe dane
+# # data = {
+# #     'Płeć': ['Mężczyzna', 'Kobieta', 'Kobieta', 'Mężczyzna', 'Kobieta'],
+# #     'Grupa wiekowa': ['18-25', '26-35', '26-35', '36-45', '36-45'],
+# #     'Wzrost': [170, 165, 155, 180, 175],
+# #     'Waga': [70, 60, 55, 85, 70]
+# # }
 
-# # Tworzenie ramki danych
-# df = pd.DataFrame(data)
+# # # Tworzenie ramki danych
+# # df = pd.DataFrame(data)
 
 # # Grupowanie danych według dwóch zmiennych kategorialnych i obliczanie statystyk opisowych dla każdej grupy
 # statystyki_opisowe = df.groupby(['Płeć', 'Grupa wiekowa']).describe().reset_index()
