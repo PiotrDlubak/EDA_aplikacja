@@ -723,8 +723,8 @@ with st.container(border=True):
                             {"role": "user", "content": prompt}
                         ]
                     )
-                    st.markdown(completion.choices[0].message['content'])
-
+                    #st.markdown(completion.choices[0].message['content'])
+                    st.markdown("Chat response:", completion.choices[0].message.content)
 
             
                
