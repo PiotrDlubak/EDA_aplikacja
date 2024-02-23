@@ -716,7 +716,7 @@ with st.container(border=True):
             import streamlit as st
             
             st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
-            st.write("w trakcie tworzenia....")
+            st.write("w trakcie testów....")
             
             api_key = st.secrets["klucz"]
             client = OpenAI(api_key=api_key)
@@ -724,10 +724,10 @@ with st.container(border=True):
             completion = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartości wyliczonych parametrów statystycznych"},
+                    {"role": "system", "content": "Jesteś statystykiem, który ma  "jestem profesorem statystytki i wykładam na uczelnni odpowiadam rzeczowo i profesjonalnie na wszystkie zagadnienia z dziedziny statystyki, sztuznej inteligencji, uczeniu maszynowym, nauki o danych , podaję definicję , wzory i interpretację. Nie wolno mi odpowiadać na pytania z innych dziedzin."},
                     {"role": "user", "content": prompt}
                 ]
             )
             if st.button('Pytaj'):
-                st.markdown(completion.choices[0].message)
+                st.write(completion.choices[0].message)
                               
