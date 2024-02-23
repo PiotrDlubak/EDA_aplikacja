@@ -720,7 +720,7 @@ with st.container(border=True):
             
             api_key = st.secrets["klucz"]
             client = OpenAI(api_key=api_key)
-            prompt = "Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:" 
+            st.write( = "Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:" )
             completion = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
