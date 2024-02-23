@@ -715,28 +715,54 @@ with st.container(border=True):
             from openai import OpenAI
             import streamlit as st
             
-            st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
-            st.write("w trakcie testów....")
+            # st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
+            # st.write("w trakcie testów....")
             
-            api_key = st.secrets["klucz"]
-            client = OpenAI(api_key=api_key)
-            prompt1 = st.text_input("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
-            completion = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Jestem profesorem statystytki i wykładam na uczelnni odpowiadam rzeczowo i profesjonalnie na wszystkie zagadnienia z dziedziny statystyki, sztuznej inteligencji, uczeniu maszynowym, nauki o danych , podaję definicję , wzory i interpretację. Nie wolno mi odpowiadać na pytania z innych dziedzin."},
-                    {"role": "user", "content": prompt1}
-                ]
-            )
-            prompt = st.chat_input(prompt)
-            if prompt:
-                st.write(f"User has sent the following prompt: {prompt}")
+            # api_key = st.secrets["klucz"]
+            # client = OpenAI(api_key=api_key)
+            # prompt1 = st.text_input("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
+            # completion = client.chat.completions.create(
+            #     model="gpt-3.5-turbo",
+            #     messages=[
+            #         {"role": "system", "content": "Jestem profesorem statystytki i wykładam na uczelnni odpowiadam rzeczowo i profesjonalnie na wszystkie zagadnienia z dziedziny statystyki, sztuznej inteligencji, uczeniu maszynowym, nauki o danych , podaję definicję , wzory i interpretację. Nie wolno mi odpowiadać na pytania z innych dziedzin."},
+            #         {"role": "user", "content": prompt1}
+            #     ]
+            # )
+            # prompt = st.chat_input(prompt)
+            # if prompt:
+            #     st.write(f"User has sent the following prompt: {prompt}")
        
-                tresc_odpowiedzi = completion.choices[0].message.content
+            #     tresc_odpowiedzi = completion.choices[0].message.content
 
+            #     with st.chat_message("user"):
+            #         st.write("Moja odpowiedź na Twoje pytanie: ")
+            #         st.write(tresc_odpowiedzi)
+            st.title("ChatGPT-like clone")
+        
+            # Set OpenAI API key from Streamlit secrets
+            client = OpenAI(api_key=st.secrets["klucz"])
+            
+            # Set a default model
+            if "openai_model" not in st.session_state:
+                st.session_state["openai_model"] = "gpt-3.5-turbo"
+            
+            # Initialize chat history
+            if "messages" not in st.session_state:
+                st.session_state.messages = []
+            
+            # Display chat messages from history on app rerun
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+            
+            # Accept user input
+            if prompt := st.chat_input("What is up?"):
+                # Add user message to chat history
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                # Display user message in chat message container
                 with st.chat_message("user"):
-                    st.write("Moja odpowiedź na Twoje pytanie: ")
-                    st.write(tresc_odpowiedzi)
+                    st.markdown(prompt)
+                    
 
 
 
