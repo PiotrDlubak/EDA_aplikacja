@@ -729,5 +729,6 @@ with st.container(border=True):
                 ]
             )
             if st.button('Pytaj'):
-                st.write(completion.choices[0].message)
-                              
+                with st.chat_message("user"):
+                    st.write("Hello 👋")
+                    st.write(completion.choices[0].message)
