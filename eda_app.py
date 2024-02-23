@@ -720,9 +720,7 @@ with st.container(border=True):
             
             api_key = st.secrets["klucz"]
             client = OpenAI(api_key=api_key)
-            prompt = st.text_input("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
-
-            
+            prompt = "Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:" 
             completion = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -730,10 +728,8 @@ with st.container(border=True):
                     {"role": "user", "content": prompt}
                 ]
             )
-
             prompt = st.chat_input(prompt)
             if prompt:
-                st.write(f"User has sent the following prompt: {prompt}")
                 tresc_odpowiedzi = completion.choices[0].message.content
                 with st.chat_message("user"):
                     st.write("Moja odpowiedź na Twoje pytanie: ")
