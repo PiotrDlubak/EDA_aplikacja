@@ -404,36 +404,36 @@ with st.container(border=True):
             with st.container(border=True):
                 st.write('')
                 st.markdown("Dokonaj interpretacji wyliczonych miar statystycznych z uzycliem modelu: gpt-3.5-turbo")
-                interpretacja  = st.button('Interpretuj')
-                if interpretacja :
+                # interpretacja  = st.button('Interpretuj')
+                # if interpretacja :
 
-                    miary = (ana.stat(st.session_state.df, [wybrana_kolumna]).T)
-                    json_data = miary.to_json()
+                #     miary = (ana.stat(st.session_state.df, [wybrana_kolumna]).T)
+                #     json_data = miary.to_json()
                     
-                    prompt = """
-                    System: Witam! Jestem pomocnym asystentem statystycznym. Jak mogę Ci dzisiaj pomóc?
-                    Użytkownik: Chciałbym uzyskać interpretację statystyczną dla następujących miar obliczonych dla mojego Dataframe:
-                    {json_data}
-                    System: Na podstawie dostarczonych informacji dokonaj opisu dataframe i dokonaj interpretacji wartości statystyk:
-                    """
-                    from openai import OpenAI
-                    api_key = st.secrets["klucz"]
+                #     prompt = """
+                #     System: Witam! Jestem pomocnym asystentem statystycznym. Jak mogę Ci dzisiaj pomóc?
+                #     Użytkownik: Chciałbym uzyskać interpretację statystyczną dla następujących miar obliczonych dla mojego Dataframe:
+                #     {json_data}
+                #     System: Na podstawie dostarczonych informacji dokonaj opisu dataframe i dokonaj interpretacji wartości statystyk:
+                #     """
+                #     from openai import OpenAI
+                #     api_key = st.secrets["klucz"]
     
-                    client = OpenAI(api_key=api_key)
+                #     client = OpenAI(api_key=api_key)
 
     
-                    # Definicja komunikatów systemowego i użytkownika
-                    komunikat_systemowy = {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartości wyliczonych parametrów statystycznych"}
-                    komunikat_uzytkownika = {"role": "user", "content": prompt.format(json_data=json_data)}
+                #     # Definicja komunikatów systemowego i użytkownika
+                #     komunikat_systemowy = {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartości wyliczonych parametrów statystycznych"}
+                #     komunikat_uzytkownika = {"role": "user", "content": prompt.format(json_data=json_data)}
                     
-                    # Tworzenie zapytania do modelu
-                    completion = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
-                        messages=[komunikat_systemowy, komunikat_uzytkownika]
-                    )
+                #     # Tworzenie zapytania do modelu
+                #     completion = openai.ChatCompletion.create(
+                #         model="gpt-3.5-turbo",
+                #         messages=[komunikat_systemowy, komunikat_uzytkownika]
+                #     )
                     
-                    # Pobieranie odpowiedzi
-                    odpowiedz_LLM = completion.choices[0].message['content']
+                #     # Pobieranie odpowiedzi
+                #     odpowiedz_LLM = completion.choices[0].message['content']
 
 
 
@@ -716,9 +716,9 @@ with st.container(border=True):
             with st.container(border=True):
                 st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
                 st.write('w trakcie tworzenia....')
-                # api_key = st.secrets["klucz"]
-                # client = OpenAI(api_key=api_key)
-                # prompt = st.text_area("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
+                api_key = st.secrets["klucz"]
+                client = OpenAI(api_key=api_key)
+                prompt = st.text_area("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
                 # if st.button('Pytaj'):
                 #     completion = client.chat.completions.create(
                 #         model="gpt-3.5-turbo",
@@ -730,26 +730,16 @@ with st.container(border=True):
                 #     #st.markdown(completion.choices[0].message['content'])
                 #     st.markdown("Chat response:", completion.choices[0].message.content)
 
-            
-               
-            # import ollama
-            # with st.container(border=True):
+     
+                client = OpenAI()
                 
-            #         st.write('')
-            #         st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
-
-            #         prompt = st.chat_input("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego , nauki o danych:")
-            #         if prompt:
-            #             with st.chat_message("user"):
-            #                 st.write(prompt)
-                             
-
-            #         with st.spinner(" przetwarzam......."):
-
-            #             response = ollama.chat(model='tinyllama', messages=[
-            #             {
-            #                 'role': 'user',
-            #                 'content': 'Why is the sky blue?',
-            #             },
-            #             ])
-            #             st.write(response['message']['content'])
+                completion = client.chat.completions.create(
+                  model="gpt-3.5-turbo",
+                  messages=[
+                    {"role": "system", "content":"Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartości wyliczonych parametrów statystycznych"},
+                    {"role": "user", "content": "Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:"}
+                  ]
+                )
+                
+                st.markdown(completion.choices[0].message)
+                              
