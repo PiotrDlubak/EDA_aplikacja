@@ -427,9 +427,9 @@ with st.container(border=True):
                             {"role": "user", "content": prompt.format(json_data=json_data)}
                         ]
                     )
-                    odpowiedz_LLM = completion.choices[0].message['content']
+                    st.markdown("Chat response:", completion.choices[0].message.content)
 
-                    st.markdown(f"Odpowiedź LLM: {odpowiedz_LLM}")
+    
 
 
 
