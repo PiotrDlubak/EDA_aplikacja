@@ -420,17 +420,20 @@ with st.container(border=True):
                     api_key = st.secrets["klucz"]
     
                     client = OpenAI(api_key=api_key)
-                    completion = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartosci wyliczonych parametrów statystycznych"},
-                            {"role": "user", "content": prompt.format(json_data=json_data)}
-                        ]
-                    )
-                    st.markdown("Chat response:", completion.choices[0].message.content)
 
     
-
+                    # Definicja komunikatów systemowego i użytkownika
+                    komunikat_systemowy = {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartości wyliczonych parametrów statystycznych"}
+                    komunikat_uzytkownika = {"role": "user", "content": prompt.format(json_data=json_data)}
+                    
+                    # Tworzenie zapytania do modelu
+                    completion = openai.ChatCompletion.create(
+                        model="gpt-3.5-turbo",
+                        messages=[komunikat_systemowy, komunikat_uzytkownika]
+                    )
+                    
+                    # Pobieranie odpowiedzi
+                    odpowiedz_LLM = completion.choices[0].message['content']
 
 
 
@@ -712,19 +715,20 @@ with st.container(border=True):
             from openai import OpenAI
             with st.container(border=True):
                 st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
-                api_key = st.secrets["klucz"]
-                client = OpenAI(api_key=api_key)
-                prompt = st.text_area("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
-                if st.button('Pytaj'):
-                    completion = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartości wyliczonych parametrów statystycznych"},
-                            {"role": "user", "content": prompt}
-                        ]
-                    )
-                    #st.markdown(completion.choices[0].message['content'])
-                    st.markdown("Chat response:", completion.choices[0].message.content)
+                st.write('w trakcie tworzenia....')
+                # api_key = st.secrets["klucz"]
+                # client = OpenAI(api_key=api_key)
+                # prompt = st.text_area("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
+                # if st.button('Pytaj'):
+                #     completion = client.chat.completions.create(
+                #         model="gpt-3.5-turbo",
+                #         messages=[
+                #             {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartości wyliczonych parametrów statystycznych"},
+                #             {"role": "user", "content": prompt}
+                #         ]
+                #     )
+                #     #st.markdown(completion.choices[0].message['content'])
+                #     st.markdown("Chat response:", completion.choices[0].message.content)
 
             
                
