@@ -729,8 +729,10 @@ with st.container(border=True):
                 ]
             )
             if st.button('Pytaj'):
-                tresc_odpowiedzi = completion.choices[0].message
+                tresc_odpowiedzi = completion.choices[0].message.content
 
                 with st.chat_message("user"):
                     st.write("Moja odpowiedź na Twoje pytanie: ")
                     st.write(tresc_odpowiedzi)
+
+
