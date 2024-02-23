@@ -17,6 +17,7 @@ from scipy.stats import zscore
 import time
 import openai
 import statystyki as ana
+import pingouin as pg
 
 
 # Inicjalizacja stanu sesji dla przechowywania wybranego DataFrame
