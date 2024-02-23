@@ -1304,6 +1304,44 @@ def kruskal_wallis_test(df, col_group, col_value):
 #--------------------------------------------------------------------
 
 
+
+import pandas as pd
+
+import pandas as pd
+
+def analiza_dataframe(df):
+    # Liczba kolumn
+    liczba_kolumn = len(df.columns)
+    
+    # Liczba wierszy
+    liczba_wierszy = len(df)
+    
+    # Liczba kolumn numerycznych, tekstowych, dat i boolowskich
+    liczba_kolumn_numerycznych = len(df.select_dtypes(include='number').columns)
+    liczba_kolumn_textowych = len(df.select_dtypes(include='object').columns)
+    liczba_kolumn_dat = len(df.select_dtypes(include='datetime').columns)
+    liczba_kolumn_bool = len(df.select_dtypes(include='bool').columns)
+
+    # Tworzenie DataFrame z wynikami
+    wyniki = pd.DataFrame({
+        'Liczba kolumn': [liczba_kolumn],
+        'Liczba wierszy': [liczba_wierszy],
+        'Liczba kolumn numerycznych': [liczba_kolumn_numerycznych],
+        'Liczba kolumn tekstowych': [liczba_kolumn_textowych],
+        'Liczba kolumn dat': [liczba_kolumn_dat],
+        'Liczba kolumn bool': [liczba_kolumn_bool]
+    })
+    
+    return wyniki
+
+
+
+
+
+
+
+
+
 import pandas as pd
 
 def informacje_o_dataframe(df):
@@ -1343,15 +1381,15 @@ def braki_sprawdzenie(dane):
     proc = (liczba / (dane.shape[0]*dane.shape[1])*100).round(2)
     
     if liczba == 0:
-        st.write('Analiza brakujących danych:')
-        st.write('='*45)
-        st.write('W tabeli nie stwierdzono brakujących danych!')
+        st.write('')
+        st.info('W tabeli nie stwierdzono brakujących danych!')
     else:
-        st.write('Analiza brakujących danych:')
-        st.write('='*45)
+        st.warning('W tabeli  stwierdzono brakujące dane!')
+        st.write('')
+
         st.write(f'Liczba brakujących danych w tabeli: {liczba}')
         st.write(f'Procent brakujących danych w tabeli: {proc}%')
-        st.write('='*45)
+        st.write('')
         
         rows_with_missing_data = dane[dane.isnull().any(axis=1)]
         brakujace_dane = rows_with_missing_data.isnull().sum(axis=0)
@@ -1366,17 +1404,22 @@ def braki_sprawdzenie(dane):
         udzial_brakujacych_danych = (rows_with_missing_data.isnull().sum(axis=1) / dane.shape[1]*100).round(1)
         wyniki = pd.DataFrame({'liczba': brakujace_dane, 'proc': udzial_brakujacych_danych})
         
-        st.write('='*45)
+        st.write('')
         st.write('Brakujące dane w obserwacjach (wiersze):')
         st.dataframe(wyniki)
-
-        fig, ax = plt.subplots(figsize=(9.5, 4))
+        col1, col2 = st.columns([2,4])
+        fig, ax = plt.subplots()
         sns.heatmap(dane.isnull(), cmap='coolwarm', ax=ax)
-        st.pyplot(fig)
+        col1.pyplot(fig)
 
         rows_with_missing_data = dane[dane.isnull().any(axis=1)]
         st.write('Tabela z brakującymi danymi:')
         st.dataframe(rows_with_missing_data)
+
+
+
+
+
 
 
 def outliers(df, var):
@@ -2028,15 +2071,13 @@ def category_two_plot(df, zmienna1, zmienna2, stat, facetgrid=False):
         g.map_dataframe(countplot_with_labels)
         g.add_legend()
         plt.tight_layout()
-        st.pyplot(plt)  # Wyświetlenie wykresu w Streamlit
     else:
-        plt.figure(figsize=(6, 3)) 
+
         palette = sns.color_palette("husl", df[zmienna2].nunique())
         ax = sns.countplot(data=df, x=zmienna1, stat=stat, hue=zmienna2, palette=palette)
         for container in ax.containers:
             ax.bar_label(container, fontsize=8, color='gray')
         sns.despine()
-        st.pyplot(plt)  # Wyświetlenie wykresu w Streamlit
 
 
 

@@ -1,79 +1,22 @@
 
 
 
-import streamlit as st
-import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
-import time
+import streamlit as st
+import pandas as pd
+import numpy as np
 import openpyxl
-import json
 import openai
 import seaborn as sns
 import matplotlib.pyplot as plt
-
-from scipy.stats import shapiro, normaltest, skewtest, kurtosistest, jarque_bera
-import statsmodels.api as sm
-import scipy.stats as stats
-from scipy.stats import f
-import numpy as np
-from statsmodels.stats import weightstats as stests
-import pandas as pd
-from statsmodels.stats.proportion import proportions_ztest
-from scipy.stats import wilcoxon
-from scipy import stats
-from scipy.stats import chi2
-import pingouin as pg
-import numpy as np
-from scipy.stats import norm
-from scipy.stats import wilcoxon
-
-import pandas as pd
-import numpy as np
-from scipy.stats import chi2_contingency
-from statsmodels.stats.contingency_tables import mcnemar
-from scipy.stats import fisher_exact
-
-
-import pandas as pd
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
-from statsmodels.stats.anova import anova_lm
-
-import pandas as pd
-import statsmodels.api as sm
-from statsmodels.formula.api import ols
-from statsmodels.stats.anova import anova_lm
-from statsmodels.stats.multicomp import pairwise_tukeyhsd
-from statsmodels.stats.power import TTestPower
-
-import statystyki as ana
-
-import random
+import json
 from scipy.stats import zscore
-import re
-import math
-
 import time
 import openai
-import json
-
-#-------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import statystyki as ana
 
 
 # Inicjalizacja stanu sesji dla przechowywania wybranego DataFrame
@@ -109,12 +52,12 @@ st.markdown("""
 
 
 with st.container(border=True):
-    st.subheader(' :blue[Aplikacja **Analizer** - ver. 1.09   ]')
+    st.subheader(' :blue[Aplikacja **Analizer** - ver. 1.5   ]')
 
 with st.container(border=True):
 
    
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["📈 O aplikacji", "Załaduj dane","🔎 Podgląd danych", "🛠️ Ustaw parametry analizy", "🗓️ Raport z analizy - EDA", "➿ Uczenie maszynowe  ML","📖 pomoc"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["📈 O aplikacji", "⏏️ Załaduj dane","🔎 Podgląd danych", "🛠️ Ustaw parametry analizy", "🗓️ Raport z analizy - EDA", "➿ Uczenie maszynowe  ML","📖 pomoc"])
     st.write('')
     with tab1:    # o aplikacji
         st.write('')
@@ -122,12 +65,27 @@ with st.container(border=True):
         col1, col2= st.columns([2,2], gap = "medium")
         col1.image('logo2.png')
         col2.markdown("""
-                ## O Aplikacji Analizer  Statystyka ver. 1.09
-                Aplikacja Statystyka jest przeznaczona do ładowania, przeglądania i analizowania zestawów danych. Umożliwia wybór różnych parametrów i miar statystycznych, co czyni ją potężnym narzędziem dla analityków danych i osób interesujących się statystyką.
-                Jest ona skierowana do analityków danych, studentów, nauczycieli, a także każdego, kto interesuje się analizą danych i statystyką. Jest to szczególnie przydatne dla tych, którzy chcą zgłębić swoje umiejętności analizy danych i zrozumieć różnorodne aspekty zbiorów danych.
-                - Aplikacja wykonuje analizy jednej zmiennej numerycznej, jednej zmiennej kategorialnej, dwóch zmiennych ilościowych, dwóch zmiennych kategorialnych oraz analizę zmiennej numerycznej i kategorialnej.
-                - Liczy szereg miar statystycznych, w tym średnią, medianę, odchylenie standardowe, rozstęp, kwartyle, skośność, kurtozę, a także wykonuje testy statystyczne jak chi-kwadrat.
-                """)
+                    ## O Aplikacji Analizer ver. 1.5
+                    Aplikacja **Analizer** to narzędzie stworzone z myślą o ładowaniu, przeglądaniu oraz dogłębnej analizie różnorodnych zestawów danych.
+                    Umożliwia użytkownikom wybór różnych parametrów i miar statystycznych, 
+                    czyniąc ją niezbędnym narzędziem dla *analityków danych* oraz pasjonatów statystyki i uczenia maszynowego.
+                    Skierowana głównie do specjalistów zajmujących się analizą danych, aplikacja ta jest jednak równie przydatna
+                    dla wszystkich zainteresowanych zgłębianiem tajników analizy danych oraz statystyki. Stanowi doskonałe wsparcie 
+                    dla tych, którzy pragną rozwijać swoje umiejętności analityczne i poszerzać wiedzę na temat różnorodnych aspektów danych.
+                    ## Funkcje aplikacji:
+                    - **Analiza jednej zmiennej numerycznej**
+                    - *Analiza jednej zmiennej kategorialnej*
+                    - **_Analiza dwóch zmiennych ilościowych_**
+                    - *Analiza dwóch zmiennych kategorialnych*
+                    - **_Analiza zmiennej numerycznej i kategorialnej_**
+                    - *Analiza dwóch zmiennych numerycznych i jednej kategorialnej*
+
+                    Dzięki tym możliwościom użytkownicy mogą zgłębiać strukturę swoich danych oraz odkrywać związki i wzorce,
+                    które mogą być kluczowe dla ich dalszej analizy i zrozumienia. 
+                    Aplikacja Analizer staje się niezastąpionym narzędziem dla **analityków danych** oraz 
+                    wszystkich zainteresowanych eksploatacją potencjału informacyjnego zawartego w danych.
+                                """)
+        
         st.divider()
         col1, col2, col3, col4 = st.columns([2,2,2,2])
         col1.write('Autor: Piotr Dłubak' )
@@ -220,25 +178,33 @@ with st.container(border=True):
                 st.info("Brak załadowanego pliku danych.")
                 
         if st.session_state.df is not None:
-            st.dataframe(st.session_state.df)
+           
             dframe = st.session_state.df
+            pd.set_option('display.max_colwidth', None)
+            st.markdown(':blue[Podstawowe informacje o załadowanych danych: ]')
+            st.dataframe(ana.analiza_dataframe(st.session_state.df), hide_index=True, width=2200)
+            st.write()
+            height = st.session_state.df.shape[1] * 38                 
+            st.dataframe(ana.informacje_o_dataframe(st.session_state.df), height=height, hide_index=True, width=2200)
+            st.markdown(':blue[załadowane dane - Tabela: ]')
+            st.dataframe(st.session_state.df)
+            st.markdown(':blue[Sprawdzenie, czy w tabeli są zduplikowane dane: ]')
+            if st.session_state.df.duplicated().any():
+                duplicates = st.session_state.df[st.session_state.df.duplicated()]
+                st.warning("Znaleziono zduplikowane dane:")
+                st.dataframe(duplicates)
+            else:
+                st.info("Brak zduplikowanych danych")
+
+            st.markdown(':blue[Sprawdzenie, czy w tabeli są braki danych: ]')
+            ana.braki_sprawdzenie(st.session_state.df)
+
+       
+            
+
+
         else:
             st.write("Brak danych do wyświetlenia.")
-
-
-        st.dataframe(ana.informacje_o_dataframe(st.session_state.df))
-        st.write(st.session_state.df.duplicated().any())
-        duplicates = st.session_state.df[st.session_state.df.duplicated()]
-        st.dataframe(duplicates)
-        ana.braki_sprawdzenie(st.session_state.df)
-
-        st.dataframe(ana.outliers(st.session_state.df,'dochody'))
-
-
-
-
-
-
 
 
 
@@ -275,19 +241,19 @@ with st.container(border=True):
                     st.write('')
                     st.write('')
                         
-                    col1, col2= st.columns(2, gap='large')
+                    # col1, col2= st.columns(2, gap='large')
 
-                    with col1:
-                        st.write(':blue[Estymacja przedziałowa:]')
-                        k31 = st.checkbox('Przedział ufnosci do wybranego parametru (bootsrap)')
-                        par_ci = st.selectbox("Wybierz parametr",['średnia','odchylenie std', 'mediana', 'Q1', 'Q3'])
-                        alfa_ci = st.number_input('ustaw poziom alfa', min_value=0.01, max_value= 0.05, step= 0.01)
-                    with col2: 
-                        st.write(':blue[Weryfikacja hipotez statystycznych:]')
-                        k44 = st.checkbox('Badanie normalnosci rozkładu')
-                        norm = st.multiselect('Wybierz rodzaj testu',
-                                                        ["shapiro","lilliefors","dagostino", "skewness", "kurtosis","jarque-bera"])
-                        alfa_norm = st.number_input('ustaw poziom alfa:', min_value=0.01, max_value= 0.05, step= 0.01, help = 'wybrać nalezy warośc')
+                    # with col1:
+                    #     st.write(':blue[Estymacja przedziałowa:]')
+                    #     k31 = st.checkbox('Przedział ufnosci do wybranego parametru (bootsrap)')
+                    #     par_ci = st.selectbox("Wybierz parametr",['średnia','odchylenie std', 'mediana', 'Q1', 'Q3'])
+                    #     alfa_ci = st.number_input('ustaw poziom alfa', min_value=0.01, max_value= 0.05, step= 0.01)
+                    # with col2: 
+                    #     st.write(':blue[Weryfikacja hipotez statystycznych:]')
+                    #     k44 = st.checkbox('Badanie normalnosci rozkładu')
+                    #     norm = st.multiselect('Wybierz rodzaj testu',
+                    #                                     ["shapiro","lilliefors","dagostino", "skewness", "kurtosis","jarque-bera"])
+                    #     alfa_norm = st.number_input('ustaw poziom alfa:', min_value=0.01, max_value= 0.05, step= 0.01, help = 'wybrać nalezy warośc')
                     
                 if typ_analizy== 'analiza jednej zmiennej kategorialnej':
 
@@ -314,7 +280,7 @@ with st.container(border=True):
                         with col1:
                             tabela_korelacji = st.checkbox('tabela  korelacji')  
                         with col2:
-                            wykres = st.checkbox('Wykresy')
+                            wykres_kor = st.checkbox('Wykresy')
                         with col3:
                             regresja = st.checkbox('regresja liniowa')
                         st.write('')
@@ -370,10 +336,6 @@ with st.container(border=True):
 
 
 
-
-
-
-
     with tab5:
 
 
@@ -404,26 +366,38 @@ with st.container(border=True):
                         statystyki_b = statystyki_b[['IQR','odch_cwiar','odchylenie przeciętne','wariancja','odch_std','błąd_odch_std','kl_wsp_zmien', 'poz_wsp_zmien', 'moda', 'skośność', 'kurtoza']]
                         st.dataframe(statystyki_a, width=1800, )
                         st.dataframe(statystyki_b, width=1800)
-                
+            with st.container(border=True):
+
                 if wykresy_n:
-                    st.divider()
+                    st.markdown(':red[**Wykresy**:] ')
                     col1, col2, col3, col4 = st.columns([1,1,1,1])
                     st.write('')
+            
                     with col1:
                         st.markdown(':blue[**Histogram:**] ')
                         ana.hist_plot(st.session_state.df, wybrana_kolumna, stat = 'count')
                     with col2:
+                        st.markdown(':blue[**KDE:**] ')
                         ana.kde_plot(st.session_state.df, wybrana_kolumna)
                     with col3:
+                        st.markdown(':blue[**ECDF:**] ')
                         ana.ecdf_plot(st.session_state.df, wybrana_kolumna)
                 
                     col1, col2, col3, col4 = st.columns(4)
                     with col1:
+                        st.markdown(':blue[**BOX-PLOT:**] ')
                         ana.box_plot(st.session_state.df, wybrana_kolumna)
                     with col2:   
+                        st.markdown(':blue[**VIOLIN-PLOT:**] ')
                         ana.violin_plot(st.session_state.df, wybrana_kolumna)
                     with col3:
+                        st.markdown(':blue[**SWARM-PLOT:**] ')
                         ana.swarm_plot(st.session_state.df, wybrana_kolumna)      
+                if odstaj_n:
+                        st.markdown(':blue[**Zidentyfikowane obserwacje odstające:**] ')
+                        st.dataframe(ana.outliers(st.session_state.df, wybrana_kolumna))
+
+
                 
 
             with st.container(border=True):
@@ -458,8 +432,6 @@ with st.container(border=True):
                     st.markdown(f"Odpowiedź LLM: {odpowiedz_LLM}")
 
 
-
-
         if typ_analizy =='analiza jednej zmiennej kategorialnej':
               
             col1, col2, col3 = st.columns([2,2,4])
@@ -480,19 +452,11 @@ with st.container(border=True):
                     st.dataframe(ana.print_frequency_table(st.session_state.df, wybrana_kolumna), width=900)
 
                 if statystyki_k:
-                    col1.markdown(':blue[**wybrane statystyki:**]')
+
+                    st.markdown(':blue[**wybrane statystyki opisujące zróżnicowanie i zmienność :**]')
+                    st.write('')
+
                     st.dataframe(ana.analyze_categorical_data(st.session_state.df, wybrana_kolumna),width=1500)
-                    help = ''' IQV (na podstawie Entropii Informacyjnej): Jest to znormalizowana entropia informacyjna.
-                                ModVR (Variability Ratio): ModVR mierzy zmienność w rozkładzie częstości kategorii.
-                                Freeman's index (v): Indeks Freemana mierzy równomierność rozkładu częstości.
-                                AvDev (Average Deviation): Średnia odchylenie od średniej arytmetycznej.
-                                MNDif (Mean Normalized Difference): Średnia znormalizowana różnica.
-                                VarNC (Variance of Normalized Count): Wariancja znormalizowanej liczby.
-                                M1 (Indeks Gibbsa): Jest to pierwszy indeks Gibbsa, który mierzy rozkład częstości kategorii w próbie.
-                                M2 (Indeks Gibbsa): Jest to drugi indeks Gibbsa, który mierzy rozkład częstości kategorii w próbie.
-                                Incidence of Coincidence (IC): Incydencja zbieżności. Mierzy stopień, do którego zdarzenia zdarzają się razem.'''
-                    st.caption(help)
-                  
                 
                 if wykresy_k:
                     st.divider()
@@ -501,9 +465,6 @@ with st.container(border=True):
                     col1.pyplot(ana.category_one_plot(st.session_state.df, wybrana_kolumna, 'count'))
                     col2.markdown(':blue[**wykres częstości:**]')
                     col2.pyplot(ana.category_one_plot(st.session_state.df, wybrana_kolumna, 'percent'))
-                     
-
-
 
 
         if typ_analizy =='analiza dwóch zmiennych ilościowych':
@@ -512,34 +473,53 @@ with st.container(border=True):
             col1.write(f'Wybrany typ analizy:')
             col2.info(f':red[{str.upper(typ_analizy)}]')
             col1, col2 = st.columns([2,2])
-            wybrana_kolumna_1 = col1.selectbox("Wybierz kolumnę zmiennej nr 1", kolumny_numeryczne)  
-            wybrana_kolumna_2 = col2.selectbox("Wybierz kolumnę zmiennej nr 2 ", kolumny_numeryczne) 
-            if wybrana_kolumna_1 == wybrana_kolumna_2:
-                 st.info("wybierz 2 różne zmienne")
+            wybrana_kolumna_1 = col1.selectbox("Wybierz kolumnę zmiennej nr 1", kolumny_numeryczne, index=0)
+            wybrana_kolumna_2 = col2.selectbox("Wybierz kolumnę zmiennej nr 2", kolumny_numeryczne, index=1)
+
+           
 
             if tabela_korelacji:
-                with st.container(border=True):
-                    kor_p = ana.korelacje_numeryczne(st.session_state.df, 'pearson',wybrana_kolumna_1,wybrana_kolumna_2, )
-                    kor_k = ana.korelacje_numeryczne(st.session_state.df, 'kendall',wybrana_kolumna_1,wybrana_kolumna_2, )
-                    kor_s = ana.korelacje_numeryczne(st.session_state.df, 'spearman',wybrana_kolumna_1,wybrana_kolumna_2, )
-                    col1, col2, col3 = st.columns([2,2,2])
-                    col1.write("macierz korelcji wg medtody Pearsona")
-                    col1.dataframe(kor_p )
-                    col2.write("macierz korelcji wg medtody Pearsona")
-                    col2.dataframe(kor_k )
-                    col3.write("macierz korelcji wg medtody Pearsona")
-                    col3.dataframe(kor_s )
-                    print('')
-            if regresja:
-                with st.container(border=True):
-                    ana.cor_num(st.session_state.df,wybrana_kolumna_1,wybrana_kolumna_2)
-            if regresja:
-                with st.container(border=True):
-                    ana.analiza_regresji(st.session_state.df,wybrana_kolumna_1,wybrana_kolumna_2,)
-                    ana.cor_num_matrix(st.session_state.df,wybrana_kolumna_1,wybrana_kolumna_2,)
+                if wybrana_kolumna_1 == wybrana_kolumna_2:
+                    st.info("Wybierz 2 różne zmienne")
+                else:
 
-                  
-
+                    if tabela_korelacji:
+                        with st.container(border=True):
+                            st.write(':blue[Tabele korelacyjne:]')
+                            st.write('')
+                            kor_p = ana.korelacje_numeryczne(st.session_state.df, 'pearson',wybrana_kolumna_1,wybrana_kolumna_2, )
+                            kor_k = ana.korelacje_numeryczne(st.session_state.df, 'kendall',wybrana_kolumna_1,wybrana_kolumna_2, )
+                            kor_s = ana.korelacje_numeryczne(st.session_state.df, 'spearman',wybrana_kolumna_1,wybrana_kolumna_2, )
+                            col1, col2, col3 = st.columns([2,2,2])
+                            col1.write("macierz korelcji wg medtody Pearsona")
+                            col1.dataframe(kor_p )
+                            col2.write("macierz korelcji wg medtody Pearsona")
+                            col2.dataframe(kor_k )
+                            col3.write("macierz korelcji wg medtody Pearsona")
+                            col3.dataframe(kor_s )
+                            print('')
+                    if wykres_kor:
+                        with st.container(border=True):
+                            st.write(':blue[Wykres macierzy korelacji:]')
+                            st.write('')
+                            col1, col2, col3 = st.columns([2,2,2])
+                            with col1:
+                                ana.cor_num_matrix(st.session_state.df,wybrana_kolumna_1,wybrana_kolumna_2,)
+                            col1, col2, col3 = st.columns([2,2,2])
+                            st.write('')
+                            
+                    if regresja:
+                        with st.container(border=True):
+                            st.write(':blue[Analiza regresji:]')
+                            st.write('')
+                            col1, col2, col3 = st.columns([2,2,2])
+                            with col1:
+                                st.write('') 
+                                ana.cor_num(st.session_state.df,wybrana_kolumna_1,wybrana_kolumna_2)
+                                st.write('')
+                            with col1:
+                                ana.analiza_regresji(st.session_state.df,wybrana_kolumna_1,wybrana_kolumna_2,)
+                                          
 
         if typ_analizy =='analiza dwóch kategorialnych':
                 
@@ -554,7 +534,9 @@ with st.container(border=True):
 
                 if tabele_kontygencji:
                     with st.container(border=True):
-                        st.write('liczebności:')
+                        st.write(':blue[Tabele kontygencji::]')
+                        st.write('')
+                        st.write('liczebności:') 
                         st.dataframe(ana.rozklady_cat(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'licz_all'))
                         st.write('częstości całkowite %:')
                         st.dataframe(ana.rozklady_cat(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'proc_all'))
@@ -565,31 +547,29 @@ with st.container(border=True):
 
                     if miary_zaleznosci_k:
                         with st.container(border=True):
-                            col1, col2, col3, col4 = st.columns(4)
-                            col1.write('liczebności:')
-                    if miary_zaleznosci_k:
-                        with st.container(border=True):
-                            st.write('Miary zależnosci:')
+                            st.write(':blue[Miary zleżnosci::]')
+                            st.write('')
                             st.dataframe(ana.korelacje_nom(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k))
 
                     if wykresy_k2:
-                        with st.container(border=True):   
-                            st.write('liczebności:')
-                            col1, col2 = st.columns([3,1])
+                        with st.container(border=True): 
+                            st.write(':blue[Wykresy:]')
+                            st.write('')
+
+                            col1, col2 = st.columns([2,1])
+                            with col1:
+                                tabela_kontyngencji = pd.crosstab(index=st.session_state.df[wybrana_kolumna_1k], columns=st.session_state.df[wybrana_kolumna_2k])
+                                plt.figure(figsize=(20, 10)) 
+                                sns.heatmap(tabela_kontyngencji, annot=True, cmap="YlGnBu", fmt="d")
+                                plt.title('Heatmapa tabeli kontyngencji:')
+                                st.pyplot()
+                                st.divider()
+                            col1, col2 = st.columns([2,1])
+                            col1.write('Wykres liczebnosci:')
                             col1.pyplot(ana.category_two_plot(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'count', facetgrid=True))
-                            col1, col2 = st.columns([3,1])
+                            col1.write('')
+                            col1.write('Wykres częstości:')
                             col1.pyplot(ana.category_two_plot(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'percent', facetgrid=True))
-                            col1, col2 = st.columns([3,1])
-                            col1.pyplot(ana.category_two_plot(st.session_state.df,wybrana_kolumna_1k,wybrana_kolumna_2k, 'proportion', facetgrid=True))
-
-                            tabela_kontyngencji = pd.crosstab(index=st.session_state.df[wybrana_kolumna_1k], columns=st.session_state.df[wybrana_kolumna_2k])
-                            # Tworzenie heatmapy
-                            plt.figure(figsize=(6, 3))
-                            sns.heatmap(tabela_kontyngencji, annot=True, cmap="YlGnBu", fmt="d")
-                            plt.title('Heatmapa tabeli kontyngencji:')
-                            st.pyplot()
-
-
 
 
         if typ_analizy =='analiza zmiennej numerycznej i kategorialnej':
@@ -604,29 +584,33 @@ with st.container(border=True):
 
                 if statystyki_w_grupach:
                     with st.container(border=True):
-                        st.write('Wartości parametrów statystycznych wg poziomów zmiennej kategorialnej:')
+                        st.write(':blue[Wartości parametrów statystycznych wg poziomów zmiennej kategorialnej:]')
                         wyniki = ana.stat_kat(st.session_state.df,wybrana_kolumna_num, wybrana_kolumna_kat)
                         st.dataframe(wyniki, width=800, height=810)
                         
                 if wykresy_w_grupach:
                     st.divider()
-                   
+                    st.write(':blue[Wykresy:]')
                     palette = sns.color_palette("husl", 8)
-                    col1, col2, col3 = st.columns([2,3,2])
-                    col2.subheader("Histogram")
-                    col2.pyplot(sns.displot(data=st.session_state.df, x=wybrana_kolumna_num, col=wybrana_kolumna_kat, kind="hist", height=3, color="#3498db", bins=8, kde=True))
-                    col2.subheader("ECDF")
-                    col2.pyplot(sns.displot(data=st.session_state.df, x=wybrana_kolumna_num, col=wybrana_kolumna_kat, kind="ecdf",  height=3, color="#3498db"))
-                    col2.subheader("Box Plot")
-                    col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="box", height=4, palette=palette))
+                    col1, col2 = st.columns([1,1])
+                    col1.subheader("Histogram")
+                    col1.pyplot(sns.displot(data=st.session_state.df, x=wybrana_kolumna_num, col=wybrana_kolumna_kat, kind="hist", height=3, color="#3498db", bins=8, kde=True))
+                    col1.subheader("ECDF")
+                    col1.pyplot(sns.displot(data=st.session_state.df, x=wybrana_kolumna_num, col=wybrana_kolumna_kat, kind="ecdf",  height=3, color="#3498db"))
+                    st.write('')                    
+                    col1, col2, col3 = st.columns([1,1,2])
+                    col1.subheader("Box Plot")
+                    col1.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="box", height=4, palette=palette))
                     col2.subheader("Violin Plot")
                     col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="violin", height=4, palette="Set2"))
-                    col2.subheader("Point Plot")
-                    col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="point", height=4, palette="Set2", estimator='mean', ci=95))                       
+                    col1, col2, col3 = st.columns([1,1,2])
+                    col1.subheader("Point Plot")
+                    col1.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="point", height=4, palette="Set2", estimator='mean', ci=95))                       
                     col2.subheader("Bar Plot")
                     col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="bar", height=4, palette="Set2", estimator="sum"))
-                    col2.subheader("Swarm Plot")
-                    col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="swarm", height=4, palette="Set2", marker=".", linewidth=1, size=2, edgecolor="#3498db")) 
+                    col1, col2, col3 = st.columns([1,1,2])
+                    col1.subheader("Swarm Plot")
+                    col1.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="swarm", height=4, palette="Set2", marker=".", linewidth=1, size=2, edgecolor="#3498db")) 
                     col2.subheader("Boxen Plot")
                     col2.pyplot(sns.catplot(st.session_state.df, x=wybrana_kolumna_kat, y=wybrana_kolumna_num, kind="boxen", color="#3498db", height=4))
     
@@ -642,16 +626,24 @@ with st.container(border=True):
                 wybrana_kolumna_kate = col2.selectbox("Wybierz zmienną kategorialną 1 ", kolumny_kategorialne)
                 
                 if kor_w_grupach:
-                    wyn = ana.korelacje_num2_nom(st.session_state.df, 'pearson', wybrana_kolumna_kate,wybrana_kolumna_num_1,wybrana_kolumna_num_2 )
-                    st.dataframe(wyn)
-                    st.pyplot(sns.relplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate))
-                    st.pyplot(sns.relplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, col=wybrana_kolumna_kate ))
-                    st.pyplot(sns.lmplot(data=st.session_state.df,  x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate))
-
-                   
-                    st.pyplot(sns.pairplot(st.session_state.df, x_vars=wybrana_kolumna_num_1, y_vars=wybrana_kolumna_num_2,diag_kind="hist"))
-
-                    st.pyplot(sns.lmplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate))
+                    with st.container(border=True):
+                        st.write(':blue[Tabele kontygencji między zmiennymi numerycznymi  wg poziomów zmiennej kategorialnej]')
+                        st.write('')
+                        wyn = ana.korelacje_num2_nom(st.session_state.df, 'pearson', wybrana_kolumna_kate,wybrana_kolumna_num_1,wybrana_kolumna_num_2 )
+                        st.dataframe(wyn)
+            
+                if wykresy_kor_w_grupach:
+                    with st.container(border=True):
+                        st.write(':blue[Wykresy:]')
+                        st.write('')
+                        col1, col2 = st.columns([1,2])
+                        col1.pyplot(sns.relplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate))
+                        col1, col2 = st.columns([2,1])
+                        st.write('')
+                        col1.pyplot(sns.relplot(data=st.session_state.df, x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, col=wybrana_kolumna_kate, hue=wybrana_kolumna_kate))
+                        st.write('')
+                        col1, col2 = st.columns([1,2])
+                        col1.pyplot(sns.lmplot(data=st.session_state.df,  x=wybrana_kolumna_num_1, y=wybrana_kolumna_num_2, hue=wybrana_kolumna_kate))
 
 
 
@@ -705,6 +697,12 @@ with st.container(border=True):
 
 
 
+        with tab6:
+            st.subheader(' :blue[Moduł w budowie...............]🏗️')
+            col1, col2= st.columns([2,2], gap = "medium")
+            col1.image('under.jpg')
+
+            
 
         with tab7:
             
