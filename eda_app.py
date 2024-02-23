@@ -710,6 +710,7 @@ with st.container(border=True):
         from openai import OpenAI
         with tab7:
             with st.container(border=True):
+                st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
                 api_key = st.secrets["klucz"]
                 client = OpenAI(api_key=api_key)
                 prompt = st.text_area("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
@@ -720,9 +721,8 @@ with st.container(border=True):
                             {"role": "user", "content": prompt}
                         ]
                     )
-                odpowiedz_LLM = completion.choices[0].message['content']
-
-                st.markdown(f"Odpowiedź LLM: {odpowiedz_LLM}")
+                    if st.button('Pytaj'):
+                        st.markdown(completion.choices[0].message['content'])
 
 
             
