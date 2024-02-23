@@ -416,7 +416,7 @@ with st.container(border=True):
                     {json_data}
                     System: Na podstawie dostarczonych informacji dokonaj opisu dataframe i dokonaj interpretacji wartości statystyk:
                     """
-                 
+                    from openai import OpenAI
                     api_key = st.secrets["klucz"]
     
                     client = OpenAI(api_key=api_key)
@@ -709,31 +709,26 @@ with st.container(border=True):
             
 
         with tab7:
-            
-                # assigning API KEY to initialize openai environment 
-            openai.api_key = st.secrets["klucz"]
-
             with st.container(border=True):
-                
-                    st.write('')
-                    st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
 
-                    prompt = st.text_input("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
-                    completion = openai.ChatCompletion.create(
-                    # Use GPT-4 as the LLM
-                    model="gpt-3.5-turbo",
-                    # Pre-define conversation messages for the possible roles 
-                    messages=[
-                        {"role": "system", "content": "jestem profesorem statystytki i wykładam na uczelnni odpowiadam rzeczowo i profesjonalnie na wszystkie zagadnienia z dziedziny statystyki, sztuznej inteligencji, uczeniu maszynowym, nauki o danych , podaję definicję , wzory i interpretację. Nie wolno mi odpowiadać na pytania z innych dziedzin."},
-                        {"role": "user", "content": prompt}
+                from openai import OpenAI
+                    api_key = st.secrets["klucz"]
+    
+                    client = OpenAI(api_key=api_key)
+                    completion = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                             {"role": "system", "content": "jestem profesorem statystytki i wykładam na uczelnni odpowiadam rzeczowo i profesjonalnie na wszystkie zagadnienia z dziedziny statystyki, sztuznej inteligencji, uczeniu maszynowym, nauki o danych , podaję definicję , wzory i interpretację. Nie wolno mi odpowiadać na pytania z innych dziedzin."},
+                             {"role": "user", "content": prompt}
                     ]
                     )
+                    odpowiedz_LLM = completion.choices[0].message['content']
+
+                    st.markdown(f"Odpowiedź LLM: {odpowiedz_LLM}")
 
 
-                    if st.button('Pytaj'):
-                        st.markdown(completion.choices[0].message['content'])
-
-
+            
+               
             # import ollama
             # with st.container(border=True):
                 
