@@ -724,7 +724,7 @@ with st.container(border=True):
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartości wyliczonych parametrów statystycznych"},
-                    {"role": "user", "content": "Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:"}
+                    {"role": "user", "content": "Proszę podać odpowiedź na pytanie jak liczymy średnia i podaj wzory"}
                 ]
             )
             
