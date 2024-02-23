@@ -729,6 +729,9 @@ with st.container(border=True):
                 ]
             )
             if st.button('Pytaj'):
+                tresc_odpowiedzi = odpowiedz_LLM.content
+
                 with st.chat_message("user"):
                     st.write("Hello 👋")
-                    st.write(completion.choices[0].message)
+                    #st.write(completion.choices[0].message)
+                    st.write(tresc_odpowiedzi)
