@@ -725,7 +725,7 @@ with st.container(border=True):
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "Jestem profesorem statystytki i wykładam na uczelnni odpowiadam rzeczowo i profesjonalnie na wszystkie zagadnienia z dziedziny statystyki, sztuznej inteligencji, uczeniu maszynowym, nauki o danych , podaję definicję , wzory i interpretację. Nie wolno mi odpowiadać na pytania z innych dziedzin."},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt1}
                 ]
             )
             prompt = st.chat_input(prompt)
