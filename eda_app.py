@@ -707,25 +707,21 @@ with st.container(border=True):
             col1.image('under.jpg')
 
             
-
+        from openai import OpenAI
         with tab7:
             with st.container(border=True):
-
-                from openai import OpenAI
-             
-                    api_key = st.secrets["klucz"]
-    
-                    client = OpenAI(api_key=api_key)
-                    completion = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
+                api_key = st.secrets["klucz"]
+                client = OpenAI(api_key=api_key)
+                completion = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
                             {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartosci wyliczonych parametrów statystycznych"},
                             {"role": "user", "content": prompt.format(json_data=json_data)}
                         ]
                     )
-                    odpowiedz_LLM = completion.choices[0].message['content']
+                odpowiedz_LLM = completion.choices[0].message['content']
 
-                    st.markdown(f"Odpowiedź LLM: {odpowiedz_LLM}")
+                st.markdown(f"Odpowiedź LLM: {odpowiedz_LLM}")
 
 
             
