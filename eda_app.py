@@ -715,10 +715,10 @@ with st.container(border=True):
             from openai import OpenAI
             import streamlit as st
             
-            # st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
-            # st.write("w trakcie testów....")
+            st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
+            st.write("w trakcie testów....")
             
-            # api_key = st.secrets["klucz"]
+            #api_key = st.secrets["klucz"]
             # client = OpenAI(api_key=api_key)
             # prompt1 = st.text_input("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
             # completion = client.chat.completions.create(
@@ -740,7 +740,7 @@ with st.container(border=True):
         
             st.title("Jak zapytasz to odpowiem ....")
             
-            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            client = OpenAI(api_key=st.secrets["klucz"])
             
             if "openai_model" not in st.session_state:
                 st.session_state["openai_model"] = "gpt-3.5-turbo"
@@ -752,7 +752,7 @@ with st.container(border=True):
                 with st.chat_message(message["role"]):
                     st.markdown(message["content"])
             
-            if prompt := st.chat_input("What is up?"):
+            if prompt := st.chat_input("W czym Mogę pomóc ??? ...."):
                 st.session_state.messages.append({"role": "user", "content": prompt})
                 with st.chat_message("user"):
                     st.markdown(prompt)
