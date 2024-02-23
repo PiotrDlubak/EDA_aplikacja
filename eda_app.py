@@ -400,7 +400,7 @@ with st.container(border=True):
 
 
                 
-
+            from openai import OpenAI
             with st.container(border=True):
                 st.write('')
                 st.markdown("Dokonaj interpretacji wyliczonych miar statystycznych z uzycliem modelu: gpt-3.5-turbo")
@@ -416,22 +416,25 @@ with st.container(border=True):
                     {json_data}
                     System: Na podstawie dostarczonych informacji dokonaj opisu dataframe i dokonaj interpretacji wartości statystyk:
                     """
-
-
-                    openai.api_key = st.secrets["klucz"]
-
-                    completion = openai.ChatCompletion.create(
+                 
+                    api_key = st.secrets["klucz"]
+    
+                    client = OpenAI(api_key=api_key)
+                    completion = client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartosci wyliczonych parametrów statystycznych"},
                             {"role": "user", "content": prompt.format(json_data=json_data)}
                         ]
                     )
-
                     odpowiedz_LLM = completion.choices[0].message['content']
 
                     st.markdown(f"Odpowiedź LLM: {odpowiedz_LLM}")
 
+
+
+
+        
 
         if typ_analizy =='analiza jednej zmiennej kategorialnej':
               
