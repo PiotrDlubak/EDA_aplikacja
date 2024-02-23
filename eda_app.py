@@ -715,14 +715,12 @@ with st.container(border=True):
                 client = OpenAI(api_key=api_key)
                 prompt = st.text_area("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
                 completion = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
+                model="gpt-3.5-turbo",
+                messages=[
                             {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartosci wyliczonych parametrów statystycznych"},
-                            {"role": "user", "content": prompt}
-                        ]
-                    )
-                    if st.button('Pytaj'):
-                        st.markdown(completion.choices[0].message['content'])
+                            {"role": "user", "content": prompt}])
+                if st.button('Pytaj'):
+                    st.markdown(completion.choices[0].message['content'])
 
 
             
