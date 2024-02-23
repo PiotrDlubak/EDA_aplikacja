@@ -707,19 +707,22 @@ with st.container(border=True):
             col1.image('under.jpg')
 
             
-        from openai import OpenAI
+
         with tab7:
+            from openai import OpenAI
             with st.container(border=True):
                 st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
                 api_key = st.secrets["klucz"]
                 client = OpenAI(api_key=api_key)
                 prompt = st.text_area("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
-                completion = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                            {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartosci wyliczonych parametrów statystycznych"},
-                            {"role": "user", "content": prompt}])
                 if st.button('Pytaj'):
+                    completion = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartości wyliczonych parametrów statystycznych"},
+                            {"role": "user", "content": prompt}
+                        ]
+                    )
                     st.markdown(completion.choices[0].message['content'])
 
 
