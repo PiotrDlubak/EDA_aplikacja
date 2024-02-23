@@ -730,13 +730,11 @@ with st.container(border=True):
                     {"role": "user", "content": prompt}
                 ]
             )
-            if st.button('Pytaj'):
-                prompt = st.chat_input(prompt)
-                if prompt:
-                    st.write(f"User has sent the following prompt: {prompt}")
-                
-                tresc_odpowiedzi = completion.choices[0].message.content
 
+            prompt = st.chat_input(prompt)
+            if prompt:
+                st.write(f"User has sent the following prompt: {prompt}")
+                tresc_odpowiedzi = completion.choices[0].message.content
                 with st.chat_message("user"):
                     st.write("Moja odpowiedź na Twoje pytanie: ")
                     st.write(tresc_odpowiedzi)
