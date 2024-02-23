@@ -712,19 +712,20 @@ with st.container(border=True):
             with st.container(border=True):
 
                 from openai import OpenAI
-                api_key = st.secrets["klucz"]
+             
+                    api_key = st.secrets["klucz"]
     
-                client = OpenAI(api_key=api_key)
-                completion = client.chat.completions.create(
+                    client = OpenAI(api_key=api_key)
+                    completion = client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[
-                             {"role": "system", "content": "jestem profesorem statystytki i wykładam na uczelnni odpowiadam rzeczowo i profesjonalnie na wszystkie zagadnienia z dziedziny statystyki, sztuznej inteligencji, uczeniu maszynowym, nauki o danych , podaję definicję , wzory i interpretację. Nie wolno mi odpowiadać na pytania z innych dziedzin."},
-                             {"role": "user", "content": prompt}
-                    ]
+                            {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartosci wyliczonych parametrów statystycznych"},
+                            {"role": "user", "content": prompt.format(json_data=json_data)}
+                        ]
                     )
-                odpowiedz_LLM = completion.choices[0].message['content']
+                    odpowiedz_LLM = completion.choices[0].message['content']
 
-                st.markdown(f"Odpowiedź LLM: {odpowiedz_LLM}")
+                    st.markdown(f"Odpowiedź LLM: {odpowiedz_LLM}")
 
 
             
