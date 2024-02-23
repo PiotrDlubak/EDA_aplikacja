@@ -712,11 +712,12 @@ with st.container(border=True):
             with st.container(border=True):
                 api_key = st.secrets["klucz"]
                 client = OpenAI(api_key=api_key)
+                prompt = st.text_area("Proszę podać pytanie z dziedziny statystyki, sztucznej inteligencji, uczenia maszynowego, nauki o danych:")
                 completion = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
                             {"role": "system", "content": "Jesteś statystykiem, który ma w prosty sposób tłumaczyć i wyjaśniać co oznaczają wartosci wyliczonych parametrów statystycznych"},
-                            {"role": "user", "content": prompt.format(json_data=json_data)}
+                            {"role": "user", "content": prompt}
                         ]
                     )
                 odpowiedz_LLM = completion.choices[0].message['content']
