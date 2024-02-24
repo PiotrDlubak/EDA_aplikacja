@@ -18,6 +18,7 @@ import time
 import openai
 import statystyki as ana
 import pingouin as pg
+import openai
 
 
 # Inicjalizacja stanu sesji dla przechowywania wybranego DataFrame
@@ -220,9 +221,17 @@ with st.container(border=True):
             kolumny_numeryczne = st.session_state.df.select_dtypes(include=[np.number]).columns
             kolumny_kategorialne = st.session_state.df.select_dtypes(exclude=[np.number]).columns
             with st.container(border=True):
-                typ_analizy = st.radio(':blue[Wywierz typ analizy: ]',
+                col1, col2= st.columns([1,1], gap='medium')
+                with col1:
+                    typ_analizy = st.radio(':blue[Wywierz typ eksploracyjnej analizy danych [EDA]: ]',
                                        ['analiza jednej zmiennej numerycznej', 'analiza jednej zmiennej kategorialnej', 'analiza dwóch zmiennych ilościowych', 'analiza dwóch kategorialnych', 
                                         'analiza zmiennej numerycznej i kategorialnej', 'analiza 2 zmienne numeryczne i 1 kategorialna'],)
+                with col2:
+                    typ_analizy2 = st.radio(':blue[Wywierz typ analizy wnioskowej:  -  MODUŁ W BUDOWIE 🏗️ ]',
+                                       ['Przedziały ufnosci do wybranych parametrów ', 'Testowanie normalności rozkładu zmiennych', 'Testy parametryczne  -  porównania 1 grupa', 
+                                        'Testy nieparametryczne  - porównania 1 grupa', 'Testy parametryczne  - porównania 2 grupy', 'Testy nie parametryczne  - porównania 2 grupy'],)
+
+
 
             with st.container(border=True):
 
@@ -400,7 +409,7 @@ with st.container(border=True):
 
 
                 
-            from openai import OpenAI
+
             with st.container(border=True):
                 st.write('')
                 st.markdown("Dokonaj interpretacji wyliczonych miar statystycznych z uzycliem modelu: gpt-3.5-turbo")
@@ -709,7 +718,7 @@ with st.container(border=True):
             col1, col2= st.columns([2,2], gap = "medium")
             col1.image('under.jpg')
 
-            
+        client = OpenAI(api_key = 'API_KEY')    
 
         with tab7:
             from openai import OpenAI
@@ -741,7 +750,7 @@ with st.container(border=True):
             st.title("Jak zapytasz to odpowiem ....")
             
             client = OpenAI(api_key=st.secrets["klucz"])
-            
+
             if "openai_model" not in st.session_state:
                 st.session_state["openai_model"] = "gpt-3.5-turbo"
             

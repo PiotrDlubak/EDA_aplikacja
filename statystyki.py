@@ -41,6 +41,7 @@ import random
 from scipy.stats import zscore
 import re
 import math
+import openai
 
 
 # #-------------------------------------------------------------------------------------------------
