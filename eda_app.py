@@ -74,13 +74,7 @@ with st.container(border=True):
                     Skierowana głównie do specjalistów zajmujących się analizą danych, aplikacja ta jest jednak równie przydatna
                     dla wszystkich zainteresowanych zgłębianiem tajników analizy danych oraz statystyki. Stanowi doskonałe wsparcie 
                     dla tych, którzy pragną rozwijać swoje umiejętności analityczne i poszerzać wiedzę na temat różnorodnych aspektów danych.
-                    ## Funkcje aplikacji:
-                    - **Analiza jednej zmiennej numerycznej**
-                    - *Analiza jednej zmiennej kategorialnej*
-                    - **_Analiza dwóch zmiennych ilościowych_**
-                    - *Analiza dwóch zmiennych kategorialnych*
-                    - **_Analiza zmiennej numerycznej i kategorialnej_**
-                    - *Analiza dwóch zmiennych numerycznych i jednej kategorialnej*
+
 
                     Dzięki tym możliwościom użytkownicy mogą zgłębiać strukturę swoich danych oraz odkrywać związki i wzorce,
                     które mogą być kluczowe dla ich dalszej analizy i zrozumienia. 
@@ -221,128 +215,135 @@ with st.container(border=True):
             kolumny_numeryczne = st.session_state.df.select_dtypes(include=[np.number]).columns
             kolumny_kategorialne = st.session_state.df.select_dtypes(exclude=[np.number]).columns
             with st.container(border=True):
-                col1, col2= st.columns([1,1], gap='medium')
+                col1, col2= st.columns([1,2])
                 with col1:
-                    typ_analizy = st.radio(':blue[Wywierz typ eksploracyjnej analizy danych [EDA]: ]',
+                    typ_analizy = st.radio(':blue[Wybierz typ analizy danych : ]',
                                        ['analiza jednej zmiennej numerycznej', 'analiza jednej zmiennej kategorialnej', 'analiza dwóch zmiennych ilościowych', 'analiza dwóch kategorialnych', 
-                                        'analiza zmiennej numerycznej i kategorialnej', 'analiza 2 zmienne numeryczne i 1 kategorialna'],)
-                with col2:
-                    typ_analizy2 = st.radio(':blue[Wywierz typ analizy wnioskowej:  -  MODUŁ W BUDOWIE 🏗️ ]',
-                                       ['Przedziały ufnosci do wybranych parametrów ', 'Testowanie normalności rozkładu zmiennych', 'Testy parametryczne  -  porównania 1 grupa', 
+                                        'analiza zmiennej numerycznej i kategorialnej', 'analiza 2 zmienne numeryczne i 1 kategorialna','Przedziały ufnosci do wybranych parametrów', 'Testowanie normalności rozkładu zmiennych', 'Testy parametryczne  -  porównania 1 grupa', 
                                         'Testy nieparametryczne  - porównania 1 grupa', 'Testy parametryczne  - porównania 2 grupy', 'Testy nie parametryczne  - porównania 2 grupy'],)
 
 
 
             with st.container(border=True):
+                with col2:
+                
 
-                if typ_analizy== 'analiza jednej zmiennej numerycznej':
-                    
-                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
-                    st.write(':blue[ustaw parametry analizy:]')
-                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-                    with col1:
-                        tabela_licz_n = st.checkbox('tabela liczebności i częstości')
-                    with col2:
-                        wykresy_n = st.checkbox('Wykresy')
-                    with col3:
-                        odstaj_n = st.checkbox('Obserwacje odstające')
-                    with col4:
-                        statystyki_n = st.checkbox('Miary statystyczne')
-                    st.write('')
-                    st.write('')
+                    if typ_analizy== 'analiza jednej zmiennej numerycznej':
                         
-                    # col1, col2= st.columns(2, gap='large')
-
-                    # with col1:
-                    #     st.write(':blue[Estymacja przedziałowa:]')
-                    #     k31 = st.checkbox('Przedział ufnosci do wybranego parametru (bootsrap)')
-                    #     par_ci = st.selectbox("Wybierz parametr",['średnia','odchylenie std', 'mediana', 'Q1', 'Q3'])
-                    #     alfa_ci = st.number_input('ustaw poziom alfa', min_value=0.01, max_value= 0.05, step= 0.01)
-                    # with col2: 
-                    #     st.write(':blue[Weryfikacja hipotez statystycznych:]')
-                    #     k44 = st.checkbox('Badanie normalnosci rozkładu')
-                    #     norm = st.multiselect('Wybierz rodzaj testu',
-                    #                                     ["shapiro","lilliefors","dagostino", "skewness", "kurtosis","jarque-bera"])
-                    #     alfa_norm = st.number_input('ustaw poziom alfa:', min_value=0.01, max_value= 0.05, step= 0.01, help = 'wybrać nalezy warośc')
-                    
-                if typ_analizy== 'analiza jednej zmiennej kategorialnej':
-
-                
-                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
-                    st.write(':blue[ustaw parametry analizy:]')
-                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-                    with col1:
-                        tabela_licz_k = st.checkbox('tabela liczebności i częstości')
-                    with col2:
-                        wykresy_k = st.checkbox('Wykresy')
-                    with col3:
-                        statystyki_k = st.checkbox('Miary statystyczne')
-                    st.write('')
-
-                if typ_analizy== 'analiza dwóch zmiennych ilościowych':
-                
-                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
-                    st.write(':blue[ustaw parametry analizy:]')
-                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-
-                    with st.container(border=True):
+                        st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
                         col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
                         with col1:
-                            tabela_korelacji = st.checkbox('tabela  korelacji')  
+                            tabela_licz_n = st.checkbox('tabela liczebności i częstości')
                         with col2:
-                            wykres_kor = st.checkbox('Wykresy')
+                            wykresy_n = st.checkbox('Wykresy')
                         with col3:
-                            regresja = st.checkbox('regresja liniowa')
+                            odstaj_n = st.checkbox('Obserwacje odstające')
+                        with col4:
+                            statystyki_n = st.checkbox('Miary statystyczne')
                         st.write('')
+                        st.write('')
+                            
+                        # col1, col2= st.columns(2, gap='large')
+
+                        # with col1:
+                        #     st.write(':blue[Estymacja przedziałowa:]')
+                        #     k31 = st.checkbox('Przedział ufnosci do wybranego parametru (bootsrap)')
+                        #     par_ci = st.selectbox("Wybierz parametr",['średnia','odchylenie std', 'mediana', 'Q1', 'Q3'])
+                        #     alfa_ci = st.number_input('ustaw poziom alfa', min_value=0.01, max_value= 0.05, step= 0.01)
+                        # with col2: 
+                        #     st.write(':blue[Weryfikacja hipotez statystycznych:]')
+                        #     k44 = st.checkbox('Badanie normalnosci rozkładu')
+                        #     norm = st.multiselect('Wybierz rodzaj testu',
+                        #                                     ["shapiro","lilliefors","dagostino", "skewness", "kurtosis","jarque-bera"])
+                        #     alfa_norm = st.number_input('ustaw poziom alfa:', min_value=0.01, max_value= 0.05, step= 0.01, help = 'wybrać nalezy warośc')
                         
+                    if typ_analizy== 'analiza jednej zmiennej kategorialnej':
 
-                if typ_analizy== 'analiza dwóch kategorialnych':
-                
-                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
-                    st.write(':blue[ustaw parametry analizy:]')
-                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-
-                    with st.container(border=True):
+                        st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
                         col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
                         with col1:
-                            tabele_kontygencji = st.checkbox('tabele kontygencji')  
-
+                            tabela_licz_k = st.checkbox('tabela liczebności i częstości')
                         with col2:
-                            miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
+                            wykresy_k = st.checkbox('Wykresy')
                         with col3:
-                            wykresy_k2 = st.checkbox('Wykresy')
+                            statystyki_k = st.checkbox('Miary statystyczne')
+                        st.write('')
+
+                    if typ_analizy== 'analiza dwóch zmiennych ilościowych':
+                    
+                       
+                        st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
+                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+
+                        with st.container(border=True):
+                            col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                            with col1:
+                                tabela_korelacji = st.checkbox('tabela  korelacji')  
+                            with col2:
+                                wykres_kor = st.checkbox('Wykresy')
+                            with col3:
+                                regresja = st.checkbox('regresja liniowa')
+                            st.write('')
+                            
+
+                    if typ_analizy== 'analiza dwóch kategorialnych':
+                    
+
+                        st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
+                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+
+                        with st.container(border=True):
+                            col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                            with col1:
+                                tabele_kontygencji = st.checkbox('tabele kontygencji')  
+
+                            with col2:
+                                miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
+                            with col3:
+                                wykresy_k2 = st.checkbox('Wykresy')
 
 
-                if typ_analizy== 'analiza zmiennej numerycznej i kategorialnej':
+                    if typ_analizy== 'analiza zmiennej numerycznej i kategorialnej':
+                    
+                       
+                        st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
+                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+
+                        with st.container(border=True):
+                            col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                            with col1:
+                                statystyki_w_grupach = st.checkbox('Statystyki wg poziomów zmiennej kategorialnej')  
+
+                            #with col2:
+                                #miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
+                            with col3:
+                                wykresy_w_grupach = st.checkbox('Wykresy')          
+
+
+                    if typ_analizy== 'analiza 2 zmienne numeryczne i 1 kategorialna':
+
+                    
+                        st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
+                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+
+                        with st.container(border=True):
+                            col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                            with col1:
+                                kor_w_grupach = st.checkbox(' korelacje wg poziomów zmiennej kategorialnej')  
+
+                            with col3:
+                                wykresy_kor_w_grupach = st.checkbox('Wykresy')          
                 
-                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
-                    st.write(':blue[ustaw parametry analizy:]')
-                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-
-                    with st.container(border=True):
+                    if typ_analizy =='Przedziały ufnosci do wybranych parametrów':
+                    
+                        st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
                         col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-                        with col1:
-                            statystyki_w_grupach = st.checkbox('Statystyki wg poziomów zmiennej kategorialnej')  
-
-                        #with col2:
-                            #miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
-                        with col3:
-                            wykresy_w_grupach = st.checkbox('Wykresy')          
-
-
-                if typ_analizy== 'analiza 2 zmienne numeryczne i 1 kategorialna':
-
-                    st.info(f'Wybrano analizę: "{str.upper(typ_analizy)}"')
-                    st.write(':blue[ustaw parametry analizy:]')
-                    col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-
-                    with st.container(border=True):
-                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-                        with col1:
-                            kor_w_grupach = st.checkbox(' korelacje wg poziomów zmiennej kategorialnej')  
-
-                        with col3:
-                            wykresy_kor_w_grupach = st.checkbox('Wykresy')          
+                        ci_srednia = st.checkbox('przedział ufnosci do średniej') 
+                        ci_mediana = st.checkbox('przedział ufnosci do mediany')
+                        ci_std = st.checkbox('przedział ufnoci do odchylenia standardowego')
+                        ci_q1 = st.checkbox('przedział ufnoci do Q1')
+                        ci_g3 = st.checkbox('przedział ufnoci do Q3')
+                        
 
 
 
@@ -712,13 +713,54 @@ with st.container(border=True):
 
 
 
+        if typ_analizy =='Przedziały ufnosci do wybranych parametrów':
+            with st.container(border=True):
+                col1, col2, col3 = st.columns([2,2,4])
+                col1.write(f'Wybrany typ analizy:')
+                col2.info(f':red[{str.upper(typ_analizy)}]')
+                col1, col2 = st.columns([2,2])
+                
+            with st.container(border=True):  
+                st.write(':blue[przedział ufnosci do wyliczonych parametrów statystycznych]')
+                st.write('')
+                col1, col2, col3 = st.columns([2,1,1], gap = 'large')
+                
+                with col1: wybrana_kolumna = st.selectbox("Wybierz kolumnę", kolumny_numeryczne) 
+                with col2: alpha = st.slider('Określ poziom alpha:',0.9,0.99, step = 0.01, value = 0.95)
+                with col3: boot  = st.number_input('Określ liczbę n_bootstraps: ', value =10000)
+                st. write('')
+                if ci_srednia:
+                    wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'średnia', alpha=alpha, n_bootstraps=boot)
+                    st.write(':red[przedział ufnosci do średniej arytmetycznej:]')
+                    st.dataframe(wyn)
+                if ci_mediana:
+                    wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'mediana', alpha=alpha, n_bootstraps=boot)
+                    st.write(':red[przedział ufnosci do mediany:]')
+                    st.dataframe(wyn)
+                if ci_std:
+                    wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'odchylenie', alpha=alpha, n_bootstraps=boot)
+                    st.write(':red[przedział ufnosci do odchylenia standardowego:]')
+                    st.dataframe(wyn)
+                if ci_q1:
+                    wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'q25', alpha=alpha, n_bootstraps=boot)
+                    st.write(':red[przedział ufnosci do Q1 [.025]:]')
+                    st.dataframe(wyn)
+                if ci_g3:
+                    wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'q75', alpha=alpha, n_bootstraps=boot)
+                    st.write(':red[przedział ufnosci do Q3 [.075]:]')
+                    st.dataframe(wyn)
+
+        
+        
+        
+
 
         with tab6:
             st.subheader(' :blue[Moduł w budowie...............]🏗️')
             col1, col2= st.columns([2,2], gap = "medium")
             col1.image('under.jpg')
 
-        client = OpenAI(api_key = 'API_KEY')    
+        # client = OpenAI(api_key = 'API_KEY')    
 
         with tab7:
             from openai import OpenAI
@@ -747,36 +789,35 @@ with st.container(border=True):
             #         st.write("Moja odpowiedź na Twoje pytanie: ")
             #         st.write(tresc_odpowiedzi)
         
-            st.title("Jak zapytasz to odpowiem ....")
+        
             
-            client = OpenAI(api_key=st.secrets["klucz"])
+            #client = OpenAI(api_key=st.secrets["klucz"])
+            
+            import streamlit as st
+            from openai import OpenAI
 
-            if "openai_model" not in st.session_state:
-                st.session_state["openai_model"] = "gpt-3.5-turbo"
             
+            openai_api_key = st.text_input("Wprowadź OpenAI API Key", key="chatbot_api_key", type="password")
+ 
+
+            st.title("💬 Jak zapytasz to odpowiem ....")
+
             if "messages" not in st.session_state:
-                st.session_state.messages = []
-            
-            for message in st.session_state.messages:
-                with st.chat_message(message["role"]):
-                    st.markdown(message["content"])
-            
-            if prompt := st.chat_input("W czym Mogę pomóc ??? ...."):
+                st.session_state["messages"] = [{"role": "assistant", "content": "Jak mogę Ci pomóc?"}]
+
+            for msg in st.session_state.messages:
+                st.chat_message(msg["role"]).write(msg["content"])
+
+            if prompt := st.chat_input():
+                if not openai_api_key:
+                    st.info("Please add your OpenAI API key to continue.")
+                    st.stop()
+
+                client = OpenAI(api_key=openai_api_key)
                 st.session_state.messages.append({"role": "user", "content": prompt})
-                with st.chat_message("user"):
-                    st.markdown(prompt)
-            
-                with st.chat_message("assistant"):
-                    stream = client.chat.completions.create(
-                        model=st.session_state["openai_model"],
-                        messages=[
-                            {"role": m["role"], "content": m["content"]}
-                            for m in st.session_state.messages
-                        ],
-                        stream=True,
-                    )
-                    response = st.write_stream(stream)
-                st.session_state.messages.append({"role": "assistant", "content": response})
-
-
+                st.chat_message("user").write(prompt)
+                response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
+                msg = response.choices[0].message.content
+                st.session_state.messages.append({"role": "assistant", "content": msg})
+                st.chat_message("assistant").write(msg)
 

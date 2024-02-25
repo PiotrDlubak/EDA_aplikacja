@@ -75,8 +75,6 @@ def przedzial_ufnosci_srednia(df, zmienna, alpha=0.05, duza_proba=True):
     return 
 
 
-
-
 def przedzial_ufnosci_proporcja(df, zmienna, confidence=0.95):
     """
     Oblicza przedziały ufności dla każdej kategorii w kolumnie kategorycznej w DataFrame
@@ -85,21 +83,33 @@ def przedzial_ufnosci_proporcja(df, zmienna, confidence=0.95):
     :param df: DataFrame zawierający dane
     :param zmienna: nazwa kolumny kategorycznej w DataFrame
     :param confidence: poziom ufności
+    :return: DataFrame zawierający przedziały ufności, prawdziwe proporcje, nazwy kategorii i poziom ufności
     """
-    wyniki = {}
-    print(f'Przedział ufności do wskaźnika struktury zmiennej: {zmienna}  (na poziomie {confidence}):')
-    print('-'*80)
+    wyniki = []
+    
     for kategoria in df[zmienna].unique():
         successes = sum(df[zmienna] == kategoria)
         n = len(df[zmienna])
         confidence_interval = sm.stats.proportion_confint(successes, n, alpha=(1 - confidence))
         confidence_interval_rounded = (round(confidence_interval[0], 2), round(confidence_interval[1], 2))
-        wyniki[kategoria] = confidence_interval_rounded
-
-    for kategoria, przedzial in wyniki.items():
-        print(f'Kategoria "{kategoria}": Przedział ufności (na poziomie {confidence}):  {przedzial}')
+        prawdziwa_proporcja = successes / n
+        wyniki.append({
+            'Kategoria': kategoria,
+            'Przedział ufności dolny': confidence_interval_rounded[0],
+            'Przedział ufności górny': confidence_interval_rounded[1],
+            'Prawdziwa proporcja': prawdziwa_proporcja,
+            'Poziom ufności': confidence
+        })
     
-    return 
+    df_result = pd.DataFrame(wyniki)
+    
+    return df_result
+
+
+    
+
+
+
 
 
 
@@ -196,18 +206,16 @@ def przedzial_ufnosci_odchylenia_standardowego(df, zmienna, alpha=0.05):
     return 
 
 
-
-
 def bootstrap_ci(df, zmienna, stat_func_name, alpha=0.05, n_bootstraps=10000):
     """
     Oblicza przedział ufności bootstrap dla dowolnej funkcji statystycznej.
 
     :param df: DataFrame zawierający dane.
     :param zmienna: Nazwa zmiennej, dla której obliczany jest przedział ufności.
-    :param stat_func_name: Nazwa funkcji statystycznej do obliczenia na danych, np. 'średnia', 'mediania''odchylenie','wariancja''q25','q75'
+    :param stat_func_name: Nazwa funkcji statystycznej do obliczenia na danych, np. 'średnia', 'mediana', 'odchylenie', 'wariancja', 'q25', 'q75'.
     :param alpha: Poziom istotności dla przedziału ufności.
     :param n_bootstraps: Liczba próbek bootstrapowych do wygenerowania.
-    :return: Krotka z dolnym i górnym ograniczeniem przedziału ufności.
+    :return: DataFrame zawierający dolne i górne ograniczenia przedziału ufności oraz poziom alfa.
     """
     # Rozszerzony słownik mapujący nazwy funkcji na funkcje numpy
     stat_funcs = {
@@ -229,13 +237,23 @@ def bootstrap_ci(df, zmienna, stat_func_name, alpha=0.05, n_bootstraps=10000):
     ci_lower = np.percentile(bootstrapped_stats, 100*alpha/2)
     ci_upper = np.percentile(bootstrapped_stats, 100*(1-alpha/2))
     
-    print(f'Przedział ufności bootstrap {stat_func_name} na poziomie alfa = {1-alpha} dla zmiennej: "{zmienna}": ')
-    print('-'*80)
-    print(f"Zmienna: {zmienna}")
-    print(f"{stat_func_name}: {original_stat:.2f}")
-    print(f"Przedział ufności: ({ci_lower:.2f}, {ci_upper:.2f})")
+    # Formatowanie wyników do dwóch miejsc po przecinku
+    original_stat = round(original_stat, 2)
+    ci_lower = round(ci_lower, 2)
+    ci_upper = round(ci_upper, 2)
 
-    return 
+    # Tworzenie DataFrame z wynikami
+    result_df = pd.DataFrame({
+        'Zmienna': [zmienna],
+        'Funkcja_statystyczna': [stat_func_name],
+        'Wartość_statystyki': [original_stat],
+        'Przedział_ufności_dolny': [ci_lower],
+        'Przedział_ufności_górny': [ci_upper],
+        'Poziom_alfa': [alpha]
+    })
+
+    return result_df
+
 
 
 
@@ -301,7 +319,6 @@ def dwumianowy_przedzial_ufnosci(df, zmienna, sukces, alpha=0.05, method='normal
 
 
 
-
 def testy_normalnosci_jeden(df, zmienna, wybrane_testy=None, alpha=0.05):
     """
     Przeprowadza wybrane testy na normalność rozkładu danych.
@@ -309,14 +326,25 @@ def testy_normalnosci_jeden(df, zmienna, wybrane_testy=None, alpha=0.05):
     :param x: dane do testowania
     :param wybrane_testy: lista testów do wykonania (domyślnie wszystkie)
     :param alpha: poziom istotności dla testów (domyślnie 0.05)
+    :return: DataFrame zawierający wyniki testów normalności, w tym statystyki, p-value, ocenę testu, poziom alfa oraz interpretację wyniku.
     """
 
     def wykonaj_test(statystyka, p_value, nazwa_testu):
-        print(f'{nazwa_testu}: statystyka-t: {statystyka:.4f}, p-value {p_value:.4f}')
         if p_value > alpha:
-            print(f' Brak dowodów na odrzucenie hipotezy o normalności rozkładu danych.Próbka ma rozkład normalny (na poziomie istotności {alpha})\n')
+            ocena_testu = 'Brak dowodów na odrzucenie H0 (normalność)'
         else:
-            print(f'Istnieją dowody na to, że rozkład danych odbiega od normalności.Próbka nie ma rozkładu normalnego (na poziomie istotności {alpha})\n')
+            ocena_testu = 'Istnieją dowody na odrzucenie H0 (brak normalności)'
+
+        interpretacja = "Rozkład jest uznawany za normalny" if p_value > alpha else "Rozkład nie jest uznawany za normalny"
+
+        return pd.Series({
+            'Nazwa testu': nazwa_testu,
+            'Statystyka': statystyka,
+            'p-value': p_value,
+            'Poziom alfa': alpha,
+            'Ocena testu': ocena_testu,
+            'Interpretacja': interpretacja
+        })
 
     dostepne_testy = {
         "shapiro": lambda: stats.shapiro(df[zmienna]),
@@ -329,18 +357,18 @@ def testy_normalnosci_jeden(df, zmienna, wybrane_testy=None, alpha=0.05):
 
     if wybrane_testy is None:
         wybrane_testy = dostepne_testy.keys()
-    print(f'Testowanie normalnosci rozkładu zmiennej: {zmienna}')
-    print('-'*150)
-    try:
-        for test in wybrane_testy:
-            if test in dostepne_testy:
-                statystyka, p_value = dostepne_testy[test]()
-                wykonaj_test(statystyka, p_value, f"Test {test.capitalize()}")
-            else:
-                print(f"Nieznany test: {test}")
-    except Exception as e:
-        print(f"Wystąpił błąd podczas przeprowadzania testów: {e}")
 
+    wyniki_testow = []
+    for test in wybrane_testy:
+        if test in dostepne_testy:
+            statystyka, p_value = dostepne_testy[test]()
+            wyniki_testow.append(wykonaj_test(statystyka, p_value, f"Test {test.capitalize()}"))
+        else:
+            print(f"Nieznany test: {test}")
+
+    df_wyniki = pd.DataFrame(wyniki_testow)
+
+    return df_wyniki
 
 
 
@@ -356,14 +384,26 @@ from scipy import stats
 import numpy as np
 from statsmodels.stats.power import TTestPower
 
+
 def test_t_jednej_probki(df, zmienna, srednia_populacji, alpha=0.05):
+    """
+    Przeprowadza test T dla jednej próbki.
+
+    :param df: DataFrame zawierający dane.
+    :param zmienna: Nazwa zmiennej, dla której przeprowadzany jest test.
+    :param srednia_populacji: Średnia populacji do porównania.
+    :param alpha: Poziom istotności (domyślnie 0.05).
+    :return: DataFrame zawierający wyniki testu T dla jednej próbki.
+    """
+
     # Definicje hipotez
-    hipoteza_zerowa = f"Średnia {zmienna} w populacji jest równa {srednia_populacji}"
-    hipoteza_alternatywna = f"Średnia {zmienna} w populacji nie jest równa {srednia_populacji}"
+    hipoteza_zerowa = f"Średnia {zmienna}  =   {srednia_populacji}"
+    hipoteza_alternatywna = f"Średnia {zmienna} ≠   {srednia_populacji}"
     poziom_istotnosci = alpha
+    population_mean = srednia_populacji
 
     # Wykonanie testu T
-    statystyka, p_wartosc = stats.ttest_1samp(df[zmienna], srednia_populacji)
+    statystyka, p_wartosc = stats.ttest_1samp(df[zmienna], srednia_populacji)  #alternative: str = "two-sided" nan_policy : {'propagate', 'raise', 'omit'}, optional  alternative : {'two-sided', 'less', 'greater'}, optional
     
     # Średnia próbki i odchylenie standardowe
     srednia_probki = df[zmienna].mean()
@@ -379,83 +419,21 @@ def test_t_jednej_probki(df, zmienna, srednia_populacji, alpha=0.05):
 
     # Interpretacja wyników
     interpretacja = "statystycznie istotne różnice" if p_wartosc < alpha else "brak statystycznie istotnych różnic"
-    print('test_t_jednej_probki:')
-    print('--------------------------------------------------------------------')
-    print(f"Hipoteza zerowa: {hipoteza_zerowa}")
-    print(f"Hipoteza alternatywna: {hipoteza_alternatywna}")
-    print(f"Poziom istotności: {poziom_istotnosci}")
-    print(f"Średnia {zmienna} w próbce: {srednia_probki:.2f}")
-    print(f"Hipotetyczna średnia populacji: {srednia_populacji}")
-    print(f"Wynik testu T: {statystyka:.4f}, P-wartość: {p_wartosc:.4f}")
-    print(f"Wielkość efektu (d Cohena): {d_cohena:.4f}")
-    print(f"Moc testu: {moc:.4f}")
-    print(f"Interpretacja: {interpretacja}")
 
-
-
-
-from statsmodels.stats.proportion import proportions_ztest
-from statsmodels.stats.power import zt_ind_solve_power
-
-def test_z_jednej_probki(df, zmienna, population_mean, alpha=0.05, population_std=None):
-    # Hipotezy
-    hipoteza_zerowa = f"Średnia {zmienna} w populacji jest równa {population_mean}"
-    hipoteza_alternatywna = f"Średnia {zmienna} w populacji nie jest równa {population_mean}"
-
-    # Test Z
-    z_statistic, p_value = stests.ztest(x1=df[zmienna], value=population_mean)
-    sample_mean = df[zmienna].mean()
-    sample_std = df[zmienna].std() if population_std is None else population_std
-    n = len(df[zmienna])
-
-    # Wielkość efektu d Cohena
-    d_cohena = (sample_mean - population_mean) / sample_std
-
-    interpretacja = "statystycznie istotne różnice" if p_value < alpha else "brak statystycznie istotnych różnic"
-    print('test_Z_jednej_probki:')
-    print('---------------------------------------------------------------------------')
-    print(f"Hipoteza zerowa: {hipoteza_zerowa}")
-    print(f"Hipoteza alternatywna: {hipoteza_alternatywna}")
-    print(f"Poziom istotności: {alpha}")
-    print(f"Średnia {zmienna} w próbce: {sample_mean}")
-    print(f"Hipotetyczna średnia populacji: {population_mean}")
-    print(f"Wynik testu Z: {z_statistic:.4f}, P-wartość: {p_value:.4f}")
-    print(f"Wielkość efektu (d Cohena): {d_cohena:.4f}")
-
-    print(f"Interpretacja: {interpretacja}")
-
-
-
-
-def test_t_jednej_probki2(df, zmienna, srednia_populacji, alpha=0.05, typ_testu='obustronny'):
-    hipoteza_zerowa = f"Średnia {zmienna} w populacji jest równa {srednia_populacji}"
-    if typ_testu == 'obustronny':
-        hipoteza_alternatywna = f"Średnia {zmienna} w populacji nie jest równa {srednia_populacji}"
-    elif typ_testu == 'lewostronny':
-        hipoteza_alternatywna = f"Średnia {zmienna} w populacji jest mniejsza niż {srednia_populacji}"
-    else:  # prawostronny
-        hipoteza_alternatywna = f"Średnia {zmienna} w populacji jest większa niż {srednia_populacji}"
-    
-    poziom_istotnosci = alpha
-    statystyka, p_wartosc = stats.ttest_1samp(df[zmienna], srednia_populacji)
-    
-    # Dostosowanie P-wartości do typu testu
-    if typ_testu == 'lewostronny':
-        p_wartosc = p_wartosc / 2 if statystyka < 0 else 1 - (p_wartosc / 2)
-    elif typ_testu == 'prawostronny':
-        p_wartosc = p_wartosc / 2 if statystyka > 0 else 1 - (p_wartosc / 2)
-    
-    srednia_probki = df[zmienna].mean()
-    interpretacja = "statystycznie istotne różnice" if p_wartosc < alpha else "brak statystycznie istotnych różnic"
-    print('test_t_jednej_probki:')
-    print('--------------------------------------------------------------------')
-    print(f"Hipoteza zerowa: {hipoteza_zerowa}")
-    print(f"Hipoteza alternatywna: {hipoteza_alternatywna}")
-    print(f"Poziom istotności: {poziom_istotnosci}")
-    print(f"Średnia {zmienna} w próbce: {srednia_probki}")
-    print(f"Hipotetyczna średnia populacji: {srednia_populacji}")
-    print(f"Wynik testu T: {statystyka:.4f}, P-wartość: {p_wartosc:.4f}")
-    print(f"Interpretacja: {interpretacja}")
+    # Tworzenie DataFrame z wynikami
+    df_wyniki = pd.DataFrame({
+        'Hipoteza zerowa (H0)': [hipoteza_zerowa],
+        'Hipoteza alternatywna (HA)': [hipoteza_alternatywna],
+        'Poziom istotności': [round(poziom_istotnosci, 2)],
+        'Średnia próbki': [round(srednia_probki, 2)],
+        'Hipoteza średnia populacji': [srednia_populacji],
+        'Wynik testu T': [round(statystyka, 2)],
+        'P-wartość': [round(p_wartosc, 2)],
+        'Wielkość efektu (d Cohena)': [round(d_cohena, 2)],
+        'Moc testu': [round(moc, 2)],
+        'Interpretacja': [interpretacja]
+        })
+    return df_wyniki.T.rename(columns={0: 'Wyniki'}).rename_axis(index=None)
 
 
 
@@ -502,21 +480,41 @@ def chi_square_variance_test(df, zmienna, population_variance, alpha=0.05):
 # ZMIENNA KATEGORIALNA - PROPORCJE
 #---------------------------------------
 
-def test_z_proporcji(df, zmienna, target_poziom, population_proportion, alpha=0.05):
+import pandas as pd
+from statsmodels.stats.proportion import proportions_ztest
 
-    H0 = f"H0: Proporcja sukcesów ('{target_poziom}') w próbce jest równa {population_proportion}."
-    H1 = f"H1: Proporcja sukcesów ('{target_poziom}') w próbce nie jest równa {population_proportion}."
-    df['binarna'] = df[zmienna].apply(lambda x: 1 if x == target_poziom else 0)
-    successes = df['binarna'].sum()
-    n_obs = len(df['binarna'])
-    z_statistic, p_value = proportions_ztest(count=successes, nobs=n_obs, value=population_proportion)
-    interpretacja = "statystycznie istotne" if p_value < alpha else "brak statystycznie istotnych"
-    proporcje = df[zmienna].value_counts(normalize=True).to_dict()
-    print('test_z_proporcji:')
-    print('---------------------------------------------------------------------------')
-    wynik = f"{H0}\n{H1}\nWynik testu Z: {z_statistic:.4f}\nP-wartość: {p_value:.4f}\nInterpretacja: {interpretacja} różnice"
-    proporcje_str = "\n".join([f"{klucz}: {wartosc:.2f}" for klucz, wartosc in proporcje.items()])
-    return wynik + "\nProporcje poziomów zmiennej:\n" + proporcje_str
+def test_proporcji(df, zmienna, nazwa_grupy, hipotetyczna_proporcja, alfa=0.05):
+
+    liczba_zmiennej_w_grupie = df[df[zmienna] == nazwa_grupy][zmienna].count()
+    n = df[zmienna].count()
+    faktyczna_prop = liczba_zmiennej_w_grupie / n
+
+    stat, pval = proportions_ztest(liczba_zmiennej_w_grupie, n, hipotetyczna_proporcja)
+
+    interpretacja = "Brak danych"
+
+    if pval < alfa:
+        interpretacja = "Odrzucamy hipotezę zerową"
+    else:
+        interpretacja = "Nie ma podstaw do odrzucenia hipotezy zerowej"
+
+    wyniki = pd.DataFrame({
+        'Hipoteza zerowa (H0)': [f"Proporcja = {hipotetyczna_proporcja}"],
+        'Hipoteza alternatywna (HA)': ['Proporcje są różne'],
+        'zmienna': [zmienna],
+        'nazwa_grupy': [nazwa_grupy],
+        'liczba_obserwacji': [n],
+        'faktyczna_proporcja': [faktyczna_prop],
+        'hipotetyczna_proporcja': [hipotetyczna_proporcja],
+        'stat': [stat],
+        'p-value': [pval],
+        'alfa': [alfa],
+        'interpretacja': [interpretacja]
+    })
+
+    return wyniki.T
+
+
 
 
 
@@ -527,7 +525,11 @@ def test_z_proporcji(df, zmienna, target_poziom, population_proportion, alpha=0.
 # ZMIENNA NUMERYCZNA - MEDIANY
 #---------------------------------
 
-
+import numpy as np
+import pandas as pd
+from scipy.stats import wilcoxon
+from statsmodels.stats.descriptivestats import sign_test
+from statsmodels.stats.power import TTestPower
 
 def wilcoxon_signed_rank_test(df, zmienna, population_median, alpha=0.05):
     n = len(df[zmienna])
@@ -536,14 +538,34 @@ def wilcoxon_signed_rank_test(df, zmienna, population_median, alpha=0.05):
     ranked_differences = abs_differences.argsort().argsort() + 1
     T = sum(np.sign(differences) * ranked_differences)
     p_value = wilcoxon(differences, alternative='two-sided')[1]
-    H0 = f"Hipoteza zerowa: Mediana {zmienna} w populacji jest równa {population_median}"
-    H1 = f"Hipoteza alternatywna: Mediana {zmienna} w populacji nie jest równa {population_median}"
-    interpretation = "statystycznie istotne różnice" if p_value < alpha else "brak statystycznie istotnych różnic"
-    print('wilcoxon_signed_rank_test:')
-    print('---------------------------------------------------------------------------')
-    wynik = f"{H0}\n{H1}\nPoziom istotności: {alpha}\nMediana {zmienna} w próbce: {np.median(df[zmienna]):.2f}\nHipotetyczna mediana populacji:{population_median:.2f}\nWynik testu Wilcoxona: {T:.4f}, P-wartość: {p_value:.2f}\nInterpretacja: {interpretation}"
-    return wynik
 
+    mediana = (np.median(df[zmienna]))
+
+    # Obliczanie mocy testu t i efektu rozmiaru
+    stat, _ = sign_test(differences, population_median)
+    effect_size = stat / np.sqrt(n)
+    power = TTestPower().power(effect_size=effect_size, nobs=n, alpha=alpha, alternative='two-sided')
+
+    if p_value < alpha:
+        interpretacja = "Odrzucamy hipotezę zerową"
+    else:
+        interpretacja = "Nie ma podstaw do odrzucenia hipotezy zerowej"
+        
+    wyniki = pd.DataFrame({
+        'Hipoteza zerowa (H0)': [f"Mediana {zmienna} = {population_median}"],
+        'Hipoteza alternatywna (HA)': [f"Mediana {zmienna} ≠ {population_median}"],
+        'zmienna': [zmienna],
+        'liczba_obserwacji': [n],
+        'faktyczna_mediana': [mediana],
+        'hipotetyczna_mediana': [population_median],
+        'stat': [T],
+        'p-value': [p_value], 
+        'alfa': [alpha],
+        'efekt_rozmiaru': [effect_size],
+        'moc_testu_t': [power],
+        'interpretacja': [interpretacja]
+    })
+    return wyniki.T
 
 
 #-------------------------------------------
@@ -614,6 +636,111 @@ def test_dwumianowy(df, zmienna, nazwa_poziom, oczekiwana_proporcja=0.5, alpha=0
     
     return wynik
 
+
+
+import pandas as pd
+import numpy as np
+from statsmodels.stats.proportion import proportions_ztest
+
+def test_proporcji(df, zmienna, alpha=0.05):
+    """
+    Funkcja przeprowadza test proporcji dla dwóch grup na podstawie zmiennej kategorycznej w ramce danych.
+
+    Parametry:
+    - df: pandas.DataFrame, ramka danych zawierająca zmienną kategoryczną
+    - zmienna: str, nazwa kolumny zawierającej zmienną kategoryczną
+    - alpha: float, poziom istotności (domyślnie 0.05)
+
+    Zwraca:
+    - wyniki: pandas.DataFrame, ramka danych zawierająca wyniki testu proporcji dla każdej grupy
+    """
+
+    poziomy_zmiennych = df[zmienna].unique()
+    wyniki = []
+
+    for poziom in poziomy_zmiennych:
+        # Liczba zmiennych w danej grupie
+        liczba_zmiennych_w_grupie = df[df[zmienna] == poziom][zmienna].count()
+        # Całkowita liczba zmiennych w badaniu
+        n = df[zmienna].count()
+
+        # Obliczenie proporcji w danej grupie
+        faktyczna_proporcja = liczba_zmiennych_w_grupie / n
+
+        # Przeprowadzenie testu proporcji
+        count = np.array([liczba_zmiennych_w_grupie, n - liczba_zmiennych_w_grupie])
+        nobs = np.array([n, n])
+
+        # Wywołanie testu proporcji
+        stat, pval = proportions_ztest(count, nobs, alternative='two-sided')
+
+        # Interpretacja wyników testu
+        if pval < alpha:
+            interpretacja = "Odrzucamy hipotezę zerową - proporcje są różne."
+        else:
+            interpretacja = "Nie ma podstaw do odrzucenia hipotezy zerowej - proporcje są równe."
+
+        wyniki.append({
+            'Grupa': poziom,
+            'Liczba zmiennych': liczba_zmiennych_w_grupie,
+            'Całkowita liczba zmiennych': n,
+            'Faktyczna proporcja': faktyczna_proporcja,
+            'Wartość statystyki': stat,
+            'Wartość p-value': pval,
+            'Poziom istotności': alpha,
+            'Interpretacja wyników': interpretacja
+        })
+        return pd.DataFrame(wyniki)
+
+
+
+
+import pandas as pd
+import scipy.stats as stats
+
+def test_dwumianowy(df, zmienna, nazwa_poziom, oczekiwana_proporcja=0.5, alpha=0.05):
+    """
+    Przeprowadza test dwumianowy dla określonej zmiennej kategorialnej w DataFrame.
+
+    :param df: DataFrame zawierający dane.
+    :param zmienna: Nazwa kolumny, dla której przeprowadzany jest test.
+    :param nazwa_poziom: Nazwa kategorii traktowanej jako 'sukces'.
+    :param oczekiwana_proporcja: Oczekiwana proporcja sukcesów w populacji.
+    :param alpha: Poziom istotności testu.
+    :return: DataFrame zawierający wynik testu.
+    """
+    # Przygotowanie danych
+    df['binarna'] = df[zmienna].apply(lambda x: 1 if x == nazwa_poziom else 0)
+    n = len(df)  # Rozmiar próbki
+    x = df['binarna'].sum()  # Liczba sukcesów
+    
+    # Obliczanie p-wartości dla testu dwumianowego
+    result = stats.binomtest(x, n, oczekiwana_proporcja, alternative='two-sided')
+    p_value = result.pvalue
+
+    # Interpretacja wyniku
+    if p_value < alpha:
+        interpretacja = "Odrzucamy hipotezę zerową - proporcja różni się od oczekiwanej."
+    else:
+        interpretacja = "Nie ma podstaw do odrzucenia hipotezy zerowej - proporcja jest zgodna z oczekiwaną."
+
+    # Usunięcie kolumny 'binarna' utworzonej tylko do celów analizy
+    del df['binarna']
+    
+    # Tworzenie ramki danych z wynikami
+    wyniki = pd.DataFrame({
+        'Hipoteza zerowa (H0)': [f"Proporcja = {oczekiwana_proporcja}"],
+        'Hipoteza alternatywna (HA)': ['Proporcje są różne'],
+        'Zmienna': [zmienna],
+        'Nazwa poziomu': [nazwa_poziom],
+        'Liczba obserwacji': [n],
+        'Liczba sukcesów': [x],
+        'P-wartość': [p_value],
+        'Poziom istotności (alpha)': [alpha],
+        'Interpretacja wyniku': [interpretacja]
+    })
+
+    return wyniki.T
 
 
 #------------------------------------
