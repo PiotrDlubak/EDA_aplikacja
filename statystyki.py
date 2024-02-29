@@ -777,7 +777,7 @@ def test_dwumianowy(df, zmienna, nazwa_poziom, oczekiwana_proporcja=0.5, alpha=0
 
 
 
-def test_rownowaznosci_kategorii(df, zmienna, alfa= 0.05):
+def test_rownowaznosci_kategorii(df, zmienna, alfa=0.05):
     """
     Przeprowadza test chi-kwadrat na równoliczność kategorii w ramach jednej zmiennej kategorialnej.
 
@@ -792,18 +792,16 @@ def test_rownowaznosci_kategorii(df, zmienna, alfa= 0.05):
     # Przeprowadzenie testu chi-kwadrat
     chi2, p_value = stats.chisquare(liczebnosc_zmiennej, f_exp=oczekiwane)
 
-
-    print(f'Test chi-kwadrat na równoliczność kategorii w zmiennej: ')
-    print('-'*100)
-    print(f'  Chi2 statystyka: {chi2:.4f}, p-value: {p_value:.4f}')
-    print(f'  Poziom istotnosci alfa: {alfa}')
+    st.write('Test chi-kwadrat na równoliczność kategorii w zmiennej:')
+    st.write('-'*100)
+    st.write(f'Chi2 statystyka: {chi2:.4f}, p-value: {p_value:.4f}')
+    st.write(f'Poziom istotnosci alfa: {alfa}')
 
     # Interpretacja wyniku
     if p_value > alfa:
-        print('Brak dowodów na istotne statystycznie różnice w liczebności kategorii.Różnica między liczebnością otrzymaną a oczekiwaną nie jest istotna')
+        st.write('Brak dowodów na istotne statystycznie różnice w liczebności kategorii. Różnica między liczebnością otrzymaną a oczekiwaną nie jest istotna.')
     else:
-        print('Różnica między liczebnością otrzymaną a oczekiwaną jest istotna. Istnieją dowody na istotne statystycznie różnice w liczebności kategorii.')
-
+        st.write('Różnica między liczebnością otrzymaną a oczekiwaną jest istotna. Istnieją dowody na istotne statystycznie różnice w liczebności kategorii.')
 
 
 #-------------------------------------
@@ -851,8 +849,7 @@ def test_normalnosc_wiele_grup(df, zmienna_kat, zmienna_num, alpha=0.05):
 #----------------------------------------------
 
 
-def fisher_snedecor_test(df, zmienna_kat,zmienna_num, alpha=0.05):
-    from scipy.stats import f
+def fisher_snedecor_test(df, zmienna_kat, zmienna_num, alpha=0.05):
     kategoria1 = df[zmienna_kat].unique()[0]
     kategoria2 = df[zmienna_kat].unique()[1]
     grupa1 = df[df[zmienna_kat] == kategoria1][zmienna_num]
@@ -864,18 +861,18 @@ def fisher_snedecor_test(df, zmienna_kat,zmienna_num, alpha=0.05):
     df2 = len(grupa2) - 1
     p_value = 1 - f.cdf(f_statistic, dfn=df1, dfd=df2)
     interpretacja = "statystycznie istotne" if p_value < alpha else "brak statystycznie istotnych"
-    hipoteza_zerowa = f"Wariancja  {kategoria1} w próbie jest równa wariancji {kategoria2} "
-    hipoteza_alternatywna = f"Wariancja  {kategoria1} w próbie nie jest równa wariancji {kategoria2} "
-    print('test rowności dwoch wariancji   -  fisher_snedecor_test:')
-    print('--------------------------------------------------------')
-    print(f"Hipoteza zerowa: {hipoteza_zerowa}")
-    print(f"Hipoteza alternatywna: {hipoteza_alternatywna}")
-    print(f"Poziom istotności: {alpha}")
-    print(f'Wariancja"{kategoria1}" = {variance1:.2f}')
-    print(f'Wariancja "{kategoria2}" = {variance2:.2f}')
-    print(f"Wynik testu F: {f_statistic:.4f}, p-value: {p_value:.4f}")
-    print(f"Interpretacja: {interpretacja}")
-    return 
+    hipoteza_zerowa = f"Wariancja {kategoria1} w próbie jest równa wariancji {kategoria2}"
+    hipoteza_alternatywna = f"Wariancja {kategoria1} w próbie nie jest równa wariancji {kategoria2}"
+
+    st.write('Test równości dwóch wariancji - Fisher-Snedecor test:')
+    st.write('--------------------------------------------------------')
+    st.write(f'Hipoteza zerowa: {hipoteza_zerowa}')
+    st.write(f'Hipoteza alternatywna: {hipoteza_alternatywna}')
+    st.write(f'Poziom istotności: {alpha}')
+    st.write(f'Wariancja "{kategoria1}" = {variance1:.2f}')
+    st.write(f'Wariancja "{kategoria2}" = {variance2:.2f}')
+    st.write(f'Wynik testu F: {f_statistic:.4f}, p-value: {p_value:.4f}')
+    st.write(f'Interpretacja: {interpretacja}')
 
 
 
@@ -1093,7 +1090,8 @@ def fisher_test_2x2(df, col_x, col_y, alpha=0.05):
     """
     Przeprowadza test Fishera dla tabel 2x2 utworzonych na podstawie dwóch kolumn DataFrame.
 
-    :param df: DataFrame zawierający dane.
+    kdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
+            st.wri:param df: DataFrame zawierający dane.
     :param col_x: Nazwa pierwszej kolumny kategorycznej.
     :param col_y: Nazwa drugiej kolumny kategorycznej.
     :param alpha: Poziom istotności (domyślnie 0.05).
@@ -1120,7 +1118,8 @@ def fisher_test_2x2(df, col_x, col_y, alpha=0.05):
 def chi2_yates_2x2(df, col_x, col_y, alpha=0.05):
     """
     Przeprowadza test chi-kwadrat z poprawką Yatesa dla tabel 2x2 utworzonych na podstawie dwóch kolumn DataFrame.
-    Poprawka na ciągłość ma zapewnić możliwość przyjmowania przez statystykę 
+    kdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
+            st.wriPoprawka na ciągłość ma zapewnić możliwość przyjmowania przez statystykę 
     testową wszystkich wartości liczb rzeczywistych zgodnie z założeniem rozkładu chi-kwadra
     :param df: DataFrame zawierający dane.
     :param col_x: Nazwa pierwszej kolumny kategorycznej.
@@ -1241,28 +1240,33 @@ def test_jednorodnosci_wariancji(df, zmienna_kat, zmienna_num, wybrane_testy=Non
         wybrane_testy = ['levene', 'bartlett', 'brown-forsythe']
     grupy = [group[zmienna_num].dropna() for _, group in df.groupby(zmienna_kat)]
     wariancje = [grupa.var() for grupa in grupy]
+
+    st.write('Wariancje dla poszczególnych grup:')
     for i, kategoria in enumerate(df[zmienna_kat].unique()):
-        print(f'Wariancja dla grupy {kategoria}: {wariancje[i]:.4f}')
+        st.write(f'Wariancja dla grupy {kategoria}: {wariancje[i]:.4f}')
+
     test_functions = {
         'levene': lambda g: stats.levene(*g),
         'bartlett': lambda g: stats.bartlett(*g),
         'brown-forsythe': lambda g: stats.levene(*g, center='median')
     }
+
     for test in wybrane_testy:
         if test in test_functions:
             stat, p_value = test_functions[test](grupy)
             interpretacja = "statystycznie istotne" if p_value < alpha else "brak statystycznie istotnych różnic"
             hipoteza_zerowa = f"Wariancje w grupach dla '{zmienna_num}' są równe"
             hipoteza_alternatywna = f"Wariancje w grupach dla '{zmienna_num}' nie są równe"
-            print(f"\nTest {test.capitalize()} na jednorodność wariancji:")
-            print('--------------------------------------------------------')
-            print(f"Hipoteza zerowa: {hipoteza_zerowa}")
-            print(f"Hipoteza alternatywna: {hipoteza_alternatywna}")
-            print(f"Poziom istotności: {alpha}")
-            print(f"Statystyka: {stat:.4f}, p-value: {p_value:.4f}")
-            print(f"Interpretacja: {interpretacja}")
+
+            st.write(f"\nTest {test.capitalize()} na jednorodność wariancji:")
+            st.write('--------------------------------------------------------')
+            st.write(f"Hipoteza zerowa: {hipoteza_zerowa}")
+            st.write(f"Hipoteza alternatywna: {hipoteza_alternatywna}")
+            st.write(f"Poziom istotności: {alpha}")
+            st.write(f"Statystyka: {stat:.4f}, p-value: {p_value:.4f}")
+            st.write(f"Interpretacja: {interpretacja}")
         else:
-            print(f'Nieznany test: {test}')
+            st.write(f'Nieznany test: {test}')
 
 
 
