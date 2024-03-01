@@ -129,11 +129,11 @@ with st.container(border=True):
 
         # Umieszczenie wczytanych danych w słowniku
         dane_dict = {
-            "test": test,
+            #"test": test,
             "sklepy": sklep,
             "szkoła" : szkoła,
-            "iris": iris,
-            "napiwki": napiwiki
+            #"iris": iris,
+            #"napiwki": napiwiki
         }
 
 
@@ -214,49 +214,47 @@ with st.container(border=True):
                 
             kolumny_numeryczne = st.session_state.df.select_dtypes(include=[np.number]).columns
             kolumny_kategorialne = st.session_state.df.select_dtypes(exclude=[np.number]).columns
-            with st.container(border=True):
-                col1, col2= st.columns([1,2])
-                with col1:
+            
+            col1, col2= st.columns([1,2])
+            with col1:
+                with st.container(border=True):
+   
+                    st.write('')
+
+
                     typ_analizy = st.radio(':blue[Wybierz typ analizy danych : ]',
                                        ['analiza jednej zmiennej numerycznej', 'analiza jednej zmiennej kategorialnej', 'analiza dwóch zmiennych ilościowych', 'analiza dwóch kategorialnych', 
-                                        'analiza zmiennej numerycznej i kategorialnej', 'analiza 2 zmienne numeryczne i 1 kategorialna','Przedziały ufnosci do wybranych parametrów', 
-                                        'weryfikacja założeń testów statystycznych', 'Testy parametryczne  -  porównania 1 grupa', 
-                                     'Testy parametryczne  - porównania 2 grupy','Testy parametryczne  - porównania >2 grupy'],)
-
-
-
-            with st.container(border=True):
-                with col2:
-                
-
+                                        'analiza zmiennej numerycznej i kategorialnej', 'analiza 2 zmienne numeryczne i 1 kategorialna'])
+                    st.write('')
+                                        #'Przedziały ufnosci do wybranych parametrów', 
+                                        #'weryfikacja założeń testów statystycznych', 'Testy parametryczne  -  porównania 1 grupa', 
+                                        #'Testy parametryczne  - porównania 2 grupy','Testy parametryczne  - porównania >2 grupy'],)
+            
+            with col2:
+                with st.container(border=True):
+                    st.write('')
                     if typ_analizy== 'analiza jednej zmiennej numerycznej':
-                        
-                        st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
-                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-                        with col1:
-                            tabela_licz_n = st.checkbox('tabela liczebności i częstości')
-                        with col2:
-                            wykresy_n = st.checkbox('Wykresy')
-                        with col3:
-                            odstaj_n = st.checkbox('Obserwacje odstające')
-                        with col4:
-                            statystyki_n = st.checkbox('Miary statystyczne')
-                        st.write('')
-                        st.write('')
-                            
-                        # col1, col2= st.columns(2, gap='large')
+                            st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
 
-                        # with col1:
-                        #     st.write(':blue[Estymacja przedziałowa:]')
-                        #     k31 = st.checkbox('Przedział ufnosci do wybranego parametru (bootsrap)')
-                        #     par_ci = st.selectbox("Wybierz parametr",['średnia','odchylenie std', 'mediana', 'Q1', 'Q3'])
-                        #     alfa_ci = st.number_input('ustaw poziom alfa', min_value=0.01, max_value= 0.05, step= 0.01)
-                        # with col2: 
-                        #     st.write(':blue[Weryfikacja hipotez statystycznych:]')
-                        #     k44 = st.checkbox('Badanie normalnosci rozkładu')
-                        #     norm = st.multiselect('Wybierz rodzaj testu',
-                        #                                     ["shapiro","lilliefors","dagostino", "skewness", "kurtosis","jarque-bera"])
-                        #     alfa_norm = st.number_input('ustaw poziom alfa:', min_value=0.01, max_value= 0.05, step= 0.01, help = 'wybrać nalezy warośc')
+                            col1, col2, col3= st.columns([1,1,1], gap='medium')
+                            with col1:
+                                tabela_licz_n = st.checkbox('tabela liczebności i częstości')
+                            with col1:
+                                wykresy_n = st.checkbox('Wykresy')
+                            with col1:
+                                odstaj_n = st.checkbox('Obserwacje odstające')
+                            with col1:
+                                statystyki_n = st.checkbox('Miary statystyczne')
+                            with col2:
+                                ci_srednia = st.checkbox('przedział ufnosci do średniej') 
+                                ci_mediana = st.checkbox('przedział ufnosci do mediany')
+                                ci_std = st.checkbox('przedział ufnoci do odchylenia standardowego')
+                                ci_q1 = st.checkbox('przedział ufnoci do Q1 i Q3')
+                            with col3:    
+                                wer_norm = st.checkbox('testowanie normalnosci rozkładu')
+                    st.write('')
+
+                        
                         
                     if typ_analizy== 'analiza jednej zmiennej kategorialnej':
 
@@ -269,6 +267,7 @@ with st.container(border=True):
                         with col3:
                             statystyki_k = st.checkbox('Miary statystyczne')
                         st.write('')
+
 
                     if typ_analizy== 'analiza dwóch zmiennych ilościowych':
                     
@@ -286,6 +285,7 @@ with st.container(border=True):
                                 regresja = st.checkbox('regresja liniowa')
                             st.write('')
                             
+                            
 
                     if typ_analizy== 'analiza dwóch kategorialnych':
                     
@@ -302,6 +302,7 @@ with st.container(border=True):
                                 miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
                             with col3:
                                 wykresy_k2 = st.checkbox('Wykresy')
+
 
 
                     if typ_analizy== 'analiza zmiennej numerycznej i kategorialnej':
@@ -335,17 +336,17 @@ with st.container(border=True):
                             with col3:
                                 wykresy_kor_w_grupach = st.checkbox('Wykresy')          
                 
-                    if typ_analizy =='Przedziały ufnosci do wybranych parametrów':
+                    # if typ_analizy =='Przedziały ufnosci do wybranych parametrów':
                     
-                        st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
-                        col1, col2 =  st.columns([1,1])
-                        with col1:
-                            ci_srednia = st.checkbox('przedział ufnosci do średniej') 
-                            ci_mediana = st.checkbox('przedział ufnosci do mediany')
-                        with col2:
-                            ci_std = st.checkbox('przedział ufnoci do odchylenia standardowego')
-                            ci_q1 = st.checkbox('przedział ufnoci do Q1')
-                            ci_g3 = st.checkbox('przedział ufnoci do Q3')
+                    #     st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
+                    #     col1, col2 =  st.columns([1,1])
+                    #     with col1:
+                    #         ci_srednia = st.checkbox('przedział ufnosci do średniej') 
+                    #         ci_mediana = st.checkbox('przedział ufnosci do mediany')
+                    #     with col2:
+                    #         ci_std = st.checkbox('przedział ufnoci do odchylenia standardowego')
+                    #         ci_q1 = st.checkbox('przedział ufnoci do Q1')
+                    #         ci_g3 = st.checkbox('przedział ufnoci do Q3')
                             
                         
                     if typ_analizy =='weryfikacja założeń testów statystycznych':
@@ -353,7 +354,7 @@ with st.container(border=True):
                         st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
                         col1, col2 =  st.columns([1,1],)
                         with col1:
-                            wer_norm = st.checkbox('testowanie normalnosci rozkładu') 
+                            #wer_norm = st.checkbox('testowanie normalnosci rozkładu') 
                             wer_jed_warian = st.checkbox('testowanie jednorodnosci wariancji -   2 grupy')
                         with col2:
                             wer_jed_warian2 = st.checkbox('testowanie jednorodnosci wariancji - > 2 grupy')
@@ -427,6 +428,7 @@ with st.container(border=True):
                         statystyki_b = statystyki_b[['IQR','odch_cwiar','odchylenie przeciętne','wariancja','odch_std','błąd_odch_std','kl_wsp_zmien', 'poz_wsp_zmien', 'moda', 'skośność', 'kurtoza']]
                         st.dataframe(statystyki_a, width=1800, )
                         st.dataframe(statystyki_b, width=1800)
+            
             with st.container(border=True):
 
                 if wykresy_n:
@@ -454,16 +456,64 @@ with st.container(border=True):
                     with col3:
                         st.markdown(':blue[**SWARM-PLOT:**] ')
                         ana.swarm_plot(st.session_state.df, wybrana_kolumna)      
+                
                 if odstaj_n:
+                    with st.container(border=True):
+                        
                         st.markdown(':blue[**Zidentyfikowane obserwacje odstające:**] ')
                         st.dataframe(ana.outliers(st.session_state.df, wybrana_kolumna))
-
+                        
+                        
+                if wer_norm :
+                    with st.container(border=True):
+                        st.write(':blue[**Weryfikacja hipotez statystycznych:**]')
+                        #wybrana_kolumna2 = st.selectbox("Wybierz kolumnę  ", kolumny_numeryczne)
+                        col1, col2 , col3= st.columns([1,2,3], gap = 'large')
+                        with col1:
+                            alpha = st.slider('Określ poziom alpha dla testu:',0.9,0.99, step = 0.01, value = 0.95)
+                        st. write('')
+                        with col2:
+                            norm = st.multiselect('Wybierz rodzaj testu',
+                                                                ["shapiro","lilliefors","dagostino", "skewness", "kurtosis","jarque-bera"])
+                        st.dataframe(ana.testy_normalnosci_jeden(st.session_state.df, wybrana_kolumna,  wybrane_testy=norm ,alpha=alpha))
+                    
+                  
+                    
+                with st.container(border=True):
+                        st.write(':blue[**Estymacja przedziałowa:**]')
+                        col1, col2 , col3= st.columns([1,1,3], gap = 'large')
+                        with col1:
+                            alpha = st.slider('Określ poziom alpha dla testu:  ',0.9,0.99, step = 0.01, value = 0.95)
+                        with col2:   
+                            boot  = st.number_input('Określ liczbę n_bootstraps: ', value =100)                             
+                        if ci_srednia:
+                            wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'średnia', alpha=alpha, n_bootstraps=boot)
+                            st.write(':red[przedział ufnosci do średniej arytmetycznej:]')
+                            st.dataframe(wyn)
+                        if ci_mediana:
+                            wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'mediana', alpha=alpha, n_bootstraps=boot)
+                            st.write(':red[przedział ufnosci do mediany:]')
+                            st.dataframe(wyn)
+                        if ci_std:
+                            wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'odchylenie', alpha=alpha, n_bootstraps=boot)
+                            st.write(':red[przedział ufnosci do odchylenia standardowego:]')
+                            st.dataframe(wyn)
+                        if ci_q1:
+                            wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'q25', alpha=alpha, n_bootstraps=boot)
+                            st.write(':red[przedział ufnosci do Q1 [.025]:]')
+                            st.dataframe(wyn)   
+                            wyn3 = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'q75', alpha=alpha, n_bootstraps=boot)
+                            st.write(':red[przedział ufnosci do Q3 [.075]:]')
+                            st.dataframe(wyn)   
+                     
+         
+                          
 
                 
 
-            with st.container(border=True):
-                st.write('')
-                st.markdown("Dokonaj interpretacji wyliczonych miar statystycznych z uzycliem modelu: gpt-3.5-turbo")
+            with st.container(border=True):pass
+                #st.write('')
+                #st.markdown("Dokonaj interpretacji wyliczonych miar statystycznych z uzycliem modelu: gpt-3.5-turbo")
                 # interpretacja  = st.button('Interpretuj')
                 # if interpretacja :
 
@@ -497,41 +547,42 @@ with st.container(border=True):
 
 
 
-        
-
         if typ_analizy =='analiza jednej zmiennej kategorialnej':
-              
-            col1, col2, col3 = st.columns([2,2,4])
-            with col1:
-                st.write(f'Wybrany typ analizy:')
-                st.info(f':red[{str.upper(typ_analizy)}]')
-                wybrana_kolumna = st.selectbox("Wybierz kolumnę zmiennej ", kolumny_kategorialne)  
-            with col2:
-                st.write(f'Wybrana zmienna:')
-                st.info(f':red[{str.upper(wybrana_kolumna)}]')
+                    
+                    col1, col2, col3 = st.columns([2,2,4])
+                    with col1:
+                        st.write(f'Wybrany typ analizy:')
+                        st.info(f':red[{str.upper(typ_analizy)}]')
+                        wybrana_kolumna = st.selectbox("Wybierz kolumnę zmiennej ", kolumny_kategorialne)  
+                    with col2:
+                        st.write(f'Wybrana zmienna:')
+                        st.info(f':red[{str.upper(wybrana_kolumna)}]')
 
-            with st.container(border=True):
+                    with st.container(border=True):
 
-                if tabela_licz_k:
-                    st.markdown(':blue[**Tabela liczebności i częstosci:**]')
-                    st.dataframe(ana.cat_stat(st.session_state.df, wybrana_kolumna), width = 2000)
-                    st.write('')
-                    st.dataframe(ana.print_frequency_table(st.session_state.df, wybrana_kolumna), width=900)
+                        if tabela_licz_k:
+                            st.markdown(':blue[**Tabela liczebności i częstosci:**]')
+                            st.dataframe(ana.cat_stat(st.session_state.df, wybrana_kolumna), width = 2000)
+                            st.write('')
+                            st.dataframe(ana.print_frequency_table(st.session_state.df, wybrana_kolumna), width=900)
 
-                if statystyki_k:
+                        if statystyki_k:
 
-                    st.markdown(':blue[**wybrane statystyki opisujące zróżnicowanie i zmienność :**]')
-                    st.write('')
+                            st.markdown(':blue[**wybrane statystyki opisujące zróżnicowanie i zmienność :**]')
+                            st.write('')
 
-                    st.dataframe(ana.analyze_categorical_data(st.session_state.df, wybrana_kolumna),width=1500)
-                
-                if wykresy_k:
-                    st.divider()
-                    col1, col2, col3 = st.columns([1,1,1])
-                    col1.markdown(':blue[**wykres liczebnosci:**]')
-                    col1.pyplot(ana.category_one_plot(st.session_state.df, wybrana_kolumna, 'count'))
-                    col2.markdown(':blue[**wykres częstości:**]')
-                    col2.pyplot(ana.category_one_plot(st.session_state.df, wybrana_kolumna, 'percent'))
+                            st.dataframe(ana.analyze_categorical_data(st.session_state.df, wybrana_kolumna),width=1500)
+                        
+                        if wykresy_k:
+                            st.divider()
+                            col1, col2, col3 = st.columns([1,1,1])
+                            col1.markdown(':blue[**wykres liczebnosci:**]')
+                            col1.pyplot(ana.category_one_plot(st.session_state.df, wybrana_kolumna, 'count'))
+                            col2.markdown(':blue[**wykres częstości:**]')
+                            col2.pyplot(ana.category_one_plot(st.session_state.df, wybrana_kolumna, 'percent'))
+
+
+
 
 
         if typ_analizy =='analiza dwóch zmiennych ilościowych':
@@ -796,11 +847,7 @@ with st.container(border=True):
                     wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'q25', alpha=alpha, n_bootstraps=boot)
                     st.write(':red[przedział ufnosci do Q1 [.025]:]')
                     st.dataframe(wyn)
-                if ci_g3:
-                    wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'q75', alpha=alpha, n_bootstraps=boot)
-                    st.write(':red[przedział ufnosci do Q3 [.075]:]')
-                    st.dataframe(wyn)
-
+             
 
         if typ_analizy =='weryfikacja założeń testów statystycznych':
             with st.container(border=True):   
@@ -814,21 +861,7 @@ with st.container(border=True):
                     alpha = st.slider('Określ poziom alpha dla testu:',0.9,0.99, step = 0.01, value = 0.95)
                     st. write('')
                     st.dataframe(ana.testy_normalnosci_jeden(st.session_state.df, wybrana_kolumna,  wybrane_testy=None, alpha=alpha))
-                    col1, col2, col3, col4 = st.columns([1,1,1,1])
-                    with col1:
-                        st.markdown(':blue[**Histogram:**] ')
-                        ana.hist_plot(st.session_state.df, wybrana_kolumna, stat = 'count')
-                    with col2:
-                        st.markdown(':blue[**KDE:**] ')
-                        ana.kde_plot(st.session_state.df, wybrana_kolumna)
-                    with col3:   
-                        st.markdown(':blue[**BOX-PLOT:**] ')
-                        ana.box_plot(st.session_state.df, wybrana_kolumna)
-                    with col4:   
-                        st.markdown(':blue[**Kwantylowy wykres kwantylowy (Q-Q plot)**]')
-                        fig = sm.qqplot(st.session_state.df[wybrana_kolumna],line='r')
-                        st.set_option('deprecation.showPyplotGlobalUse', False)
-                        st.pyplot(fig)
+
                         
                 if wer_jed_warian :
                     wybrana_kolumna_n = st.selectbox("Wybierz kolumnę numeryczną   ", kolumny_numeryczne) 

@@ -343,7 +343,7 @@ def testy_normalnosci_jeden(df, zmienna, wybrane_testy=None, alpha=0.05):
             'p-value': p_value,
             'Poziom alfa': alpha,
             'Ocena testu': ocena_testu,
-            'Interpretacja': interpretacja
+            #'Interpretacja': interpretacja
         })
 
     dostepne_testy = {
@@ -516,56 +516,43 @@ def test_proporcji(df, zmienna, nazwa_grupy, hipotetyczna_proporcja, alfa=0.05):
 
 
 
+# from statsmodels.stats.power import TTestPoRozkład 
 
+# def wilcoxon_signed_rank_test(df, zmienna, population_median, alpha=0.05):
+#     n = len(df[zmienna])
+#     differences = np.array(df[zmienna]) - population_median
+#     abs_differences = np.abs(differences)
+#     ranked_differences = abs_differences.argsort().argsort() + 1
+#     T = sum(np.sign(differences) * ranked_differences)
+#     p_value = wilcoxon(differences, alternative='two-sided')[1]
 
+#     mediana = (np.median(df[zmienna]))
 
-# ROZKLAAD INNY NIZ NORMALNY
+#     # Obliczanie mocy testu t i efektu rozmiaru
+#     stat, _ = sign_test(differences, population_median)
+#     effect_size = stat / np.sqrt(n)
+#     power = TTestPower().power(effect_size=effect_size, nobs=n, alpha=alpha, alternative='two-sided')
 
-#---------------------------------
-# ZMIENNA NUMERYCZNA - MEDIANY
-#---------------------------------
-
-import numpy as np
-import pandas as pd
-from scipy.stats import wilcoxon
-from statsmodels.stats.descriptivestats import sign_test
-from statsmodels.stats.power import TTestPower
-
-def wilcoxon_signed_rank_test(df, zmienna, population_median, alpha=0.05):
-    n = len(df[zmienna])
-    differences = np.array(df[zmienna]) - population_median
-    abs_differences = np.abs(differences)
-    ranked_differences = abs_differences.argsort().argsort() + 1
-    T = sum(np.sign(differences) * ranked_differences)
-    p_value = wilcoxon(differences, alternative='two-sided')[1]
-
-    mediana = (np.median(df[zmienna]))
-
-    # Obliczanie mocy testu t i efektu rozmiaru
-    stat, _ = sign_test(differences, population_median)
-    effect_size = stat / np.sqrt(n)
-    power = TTestPower().power(effect_size=effect_size, nobs=n, alpha=alpha, alternative='two-sided')
-
-    if p_value < alpha:
-        interpretacja = "Odrzucamy hipotezę zerową"
-    else:
-        interpretacja = "Nie ma podstaw do odrzucenia hipotezy zerowej"
+#     if p_value < alpha:
+#         interpretacja = "Odrzucamy hipotezę zerową"
+#     else:
+#         interpretacja = "Nie ma podstaw do odrzucenia hipotezy zerowej"
         
-    wyniki = pd.DataFrame({
-        'Hipoteza zerowa (H0)': [f"Mediana {zmienna} = {population_median}"],
-        'Hipoteza alternatywna (HA)': [f"Mediana {zmienna} ≠ {population_median}"],
-        'zmienna': [zmienna],
-        'liczba_obserwacji': [n],
-        'faktyczna_mediana': [mediana],
-        'hipotetyczna_mediana': [population_median],
-        'stat': [T],
-        'p-value': [p_value], 
-        'alfa': [alpha],
-        'efekt_rozmiaru': [effect_size],
-        'moc_testu_t': [power],
-        'interpretacja': [interpretacja]
-    })
-    return wyniki.T
+#     wyniki = pd.DataFrame({
+#         'Hipoteza zerowa (H0)': [f"Mediana {zmienna} = {population_median}"],
+#         'Hipoteza alternatywna (HA)': [f"Mediana {zmienna} ≠ {population_median}"],
+#         'zmienna': [zmienna],
+#         'liczba_obserwacji': [n],
+#         'faktyczna_mediana': [mediana],
+#         'hipotetyczna_mediana': [population_median],
+#         'stat': [T],
+#         'p-value': [p_value], 
+#         'alfa': [alpha],
+#         'efekt_rozmiaru': [effect_size],
+#         'moc_testu_t': [power],
+#         'interpretacja': [interpretacja]
+#     })
+#     return wyniki.T
 
 
 #-------------------------------------------
@@ -720,7 +707,7 @@ def test_dwumianowy(df, zmienna, nazwa_poziom, oczekiwana_proporcja=0.5, alpha=0
 
     # Interpretacja wyniku
     if p_value < alpha:
-        interpretacja = "Odrzucamy hipotezę zerową - proporcja różni się od oczekiwanej."
+        interpretacja = "Odrzucamozkład nie jest uznawany za normalnyy hipotezę zerową - proporcja różni się od oczekiwanej."
     else:
         interpretacja = "Nie ma podstaw do odrzucenia hipotezy zerowej - proporcja jest zgodna z oczekiwaną."
 
@@ -801,7 +788,7 @@ def test_rownowaznosci_kategorii(df, zmienna, alfa=0.05):
     if p_value > alfa:
         st.write('Brak dowodów na istotne statystycznie różnice w liczebności kategorii. Różnica między liczebnością otrzymaną a oczekiwaną nie jest istotna.')
     else:
-        st.write('Różnica między liczebnością otrzymaną a oczekiwaną jest istotna. Istnieją dowody na istotne statystycznie różnice w liczebności kategorii.')
+        st.write('Różnica między ozkład nie jest uznawany za normalnyliczebnością otrzymaną a oczekiwaną jest istotna. Istnieją dowody na istotne statystycznie różnice w liczebności kategorii.')
 
 
 #-------------------------------------
