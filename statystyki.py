@@ -1779,7 +1779,11 @@ def print_frequency_table(df, column_name):
     frequency_table['f %'] = (frequency_table['Liczba'] / frequency_table['Liczba'].sum() * 100).round(2)
     frequency_table['Liczba skum.'] = frequency_table['Liczba'].cumsum()
     frequency_table['f % skum.'] = frequency_table['f %'].cumsum().round(2)
+    
     return frequency_table
+
+
+
 
 
 import pandas as pd
@@ -2161,21 +2165,32 @@ def swarm_plot(df, zmienna):
 # # import matplotlib.pyplot as plt
 
 
-
 def category_one_plot(df, zmienna, stat):
     '''
     stat{'count', 'percent', 'proportion', 'probability'}
     '''
     plt.figure(figsize=(6, 3)) 
     palette = sns.color_palette("husl", df[zmienna].nunique())
-    ax = sns.countplot(data=df, x=zmienna, palette=palette,stat = stat)
+    
+    # Sortowanie wartości kategorycznych malejąco
+    order = df[zmienna].value_counts().index
+    
+    ax = sns.countplot(data=df, y=zmienna, palette=palette, orient='h', order=order, stat=stat)
     for container in ax.containers:
         ax.bar_label(container, fontsize=8, color='gray')
     sns.despine()
 
+
+
+
+
+
+
 import streamlit as st
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+
 
 def category_two_plot(df, zmienna1, zmienna2, stat, facetgrid=False):
     # stat{'count', 'percent', 'proportion', 'probability'}
@@ -2183,7 +2198,7 @@ def category_two_plot(df, zmienna1, zmienna2, stat, facetgrid=False):
         g = sns.FacetGrid(data=df, col=zmienna1)
         
         def countplot_with_labels(data, **kwargs):
-            ax = sns.countplot(x=zmienna2, data=data, palette="husl", stat=stat, **kwargs)
+            ax = sns.countplot(y=zmienna2, data=data, palette="husl", stat=stat, order=data[zmienna2].value_counts().index, **kwargs)
             for container in ax.containers:
                 ax.bar_label(container, fontsize=8, color='gray')
                 
@@ -2191,13 +2206,11 @@ def category_two_plot(df, zmienna1, zmienna2, stat, facetgrid=False):
         g.add_legend()
         plt.tight_layout()
     else:
-
         palette = sns.color_palette("husl", df[zmienna2].nunique())
-        ax = sns.countplot(data=df, x=zmienna1, stat=stat, hue=zmienna2, palette=palette)
+        ax = sns.countplot(data=df, y=zmienna1, stat=stat, hue=zmienna2, palette=palette, order=df[zmienna1].value_counts().index)
         for container in ax.containers:
             ax.bar_label(container, fontsize=8, color='gray')
         sns.despine()
-
 
 
  

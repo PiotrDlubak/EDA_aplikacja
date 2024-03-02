@@ -255,11 +255,11 @@ with st.container(border=True):
                     st.write('')
 
                         
-                        
+                    st.set_option('deprecation.showPyplotGlobalUse', False)   
                     if typ_analizy== 'analiza jednej zmiennej kategorialnej':
 
                         st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
-                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                        col1, col2, col3= st.columns([1,1,1], gap='medium')
                         with col1:
                             tabela_licz_k = st.checkbox('tabela liczebności i częstości')
                         with col2:
@@ -273,35 +273,28 @@ with st.container(border=True):
                     
                        
                         st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
-                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
 
-                        with st.container(border=True):
-                            col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-                            with col1:
+                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                        with col1:
                                 tabela_korelacji = st.checkbox('tabela  korelacji')  
-                            with col2:
+                        with col2:
                                 wykres_kor = st.checkbox('Wykresy')
-                            with col3:
+                        with col3:
                                 regresja = st.checkbox('regresja liniowa')
-                            st.write('')
+                        st.write('')
                             
                             
 
                     if typ_analizy== 'analiza dwóch kategorialnych':
-                    
-
+                
                         st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
-                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-
-                        with st.container(border=True):
-                            col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-                            with col1:
-                                tabele_kontygencji = st.checkbox('tabele kontygencji')  
-
-                            with col2:
-                                miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
-                            with col3:
-                                wykresy_k2 = st.checkbox('Wykresy')
+                        col1, col2, col3= st.columns([1,1,1], gap='medium')
+                        with col1:
+                            tabele_kontygencji = st.checkbox('tabele kontygencji')  
+                        with col2:
+                            miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
+                        with col3:
+                            wykresy_k2 = st.checkbox('Wykresy')
 
 
 
@@ -309,44 +302,27 @@ with st.container(border=True):
                     
                        
                         st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
-                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
+                        col1, col2, col3= st.columns([1,1,1], gap='medium')
 
-                        with st.container(border=True):
-                            col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-                            with col1:
-                                statystyki_w_grupach = st.checkbox('Statystyki wg poziomów zmiennej kategorialnej')  
+                        with col1:
+                            statystyki_w_grupach = st.checkbox('Statystyki wg poziomów zmiennej kategorialnej')  
+  
+                        with col3:
+                            wykresy_w_grupach = st.checkbox('Wykresy')          
 
-                            #with col2:
-                                #miary_zaleznosci_k = st.checkbox('Miary zależnosci')    
-                            with col3:
-                                wykresy_w_grupach = st.checkbox('Wykresy')          
+
 
 
                     if typ_analizy== 'analiza 2 zmienne numeryczne i 1 kategorialna':
 
-                    
                         st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
-                        col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-
-                        with st.container(border=True):
-                            col1, col2, col3,col4, col5= st.columns([1,1,1,1,2], gap='medium')
-                            with col1:
-                                kor_w_grupach = st.checkbox(' korelacje wg poziomów zmiennej kategorialnej')  
-
-                            with col3:
-                                wykresy_kor_w_grupach = st.checkbox('Wykresy')          
+                        col1, col2, col3= st.columns([1,1,1], gap='medium')
+                        with col1:
+                            kor_w_grupach = st.checkbox(' korelacje wg poziomów zmiennej kategorialnej')  
+                        with col3:
+                            wykresy_kor_w_grupach = st.checkbox('Wykresy')          
                 
-                    # if typ_analizy =='Przedziały ufnosci do wybranych parametrów':
-                    
-                    #     st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
-                    #     col1, col2 =  st.columns([1,1])
-                    #     with col1:
-                    #         ci_srednia = st.checkbox('przedział ufnosci do średniej') 
-                    #         ci_mediana = st.checkbox('przedział ufnosci do mediany')
-                    #     with col2:
-                    #         ci_std = st.checkbox('przedział ufnoci do odchylenia standardowego')
-                    #         ci_q1 = st.checkbox('przedział ufnoci do Q1')
-                    #         ci_g3 = st.checkbox('przedział ufnoci do Q3')
+             
                             
                         
                     if typ_analizy =='weryfikacja założeń testów statystycznych':
@@ -421,13 +397,14 @@ with st.container(border=True):
                         st.markdown(':blue[**Obszary zmienności zmiennej:**]')
                         st.dataframe(ana.obszary_zm(st.session_state.df, wybrana_kolumna), width=800, height=108)
                         st.markdown(':blue[**Wartosci parametrów statystycznych wybranej zmiennej:**]')
+                        st.dataframe(ana.stat(st.session_state.df, [wybrana_kolumna]).T, height=808, width=350)
 
-                        statystyki_a = ana.stat(st.session_state.df, [wybrana_kolumna])
-                        statystyki_a = statystyki_a[['liczba','suma','min','max','średnia', 'rozstęp', 'p_10%', 'Q1_25%','Q2_50%', 'Q3_75%', 'p_90%']]
-                        statystyki_b = ana.stat(st.session_state.df, [wybrana_kolumna])
-                        statystyki_b = statystyki_b[['IQR','odch_cwiar','odchylenie przeciętne','wariancja','odch_std','błąd_odch_std','kl_wsp_zmien', 'poz_wsp_zmien', 'moda', 'skośność', 'kurtoza']]
-                        st.dataframe(statystyki_a, width=1800, )
-                        st.dataframe(statystyki_b, width=1800)
+                        # statystyki_a = ana.stat(st.session_state.df, [wybrana_kolumna])
+                        # statystyki_a = statystyki_a[['liczba','suma','min','max','średnia', 'rozstęp', 'p_10%', 'Q1_25%','Q2_50%', 'Q3_75%', 'p_90%']]
+                        # statystyki_b = ana.stat(st.session_state.df, [wybrana_kolumna])
+                        # statystyki_b = statystyki_b[['IQR','odch_cwiar','odchylenie przeciętne','wariancja','odch_std','błąd_odch_std','kl_wsp_zmien', 'poz_wsp_zmien', 'moda', 'skośność', 'kurtoza']]
+                        # st.dataframe(statystyki_a.T, width=1800, )
+                        # st.dataframe(statystyki_b.T, width=1800)
             
             with st.container(border=True):
 
@@ -575,10 +552,10 @@ with st.container(border=True):
                         
                         if wykresy_k:
                             st.divider()
-                            col1, col2, col3 = st.columns([1,1,1])
+                            col1, col2= st.columns([1,1], gap = 'large')
                             col1.markdown(':blue[**wykres liczebnosci:**]')
                             col1.pyplot(ana.category_one_plot(st.session_state.df, wybrana_kolumna, 'count'))
-                            col2.markdown(':blue[**wykres częstości:**]')
+                            col2.markdown(':blue[**wykres częstości % :**]')
                             col2.pyplot(ana.category_one_plot(st.session_state.df, wybrana_kolumna, 'percent'))
 
 
@@ -593,8 +570,7 @@ with st.container(border=True):
             col1, col2 = st.columns([2,2])
             wybrana_kolumna_1 = col1.selectbox("Wybierz kolumnę zmiennej nr 1", kolumny_numeryczne, index=0)
             wybrana_kolumna_2 = col2.selectbox("Wybierz kolumnę zmiennej nr 2", kolumny_numeryczne, index=1)
-
-           
+          
 
             if tabela_korelacji:
                 if wybrana_kolumna_1 == wybrana_kolumna_2:
@@ -935,8 +911,8 @@ with st.container(border=True):
             from openai import OpenAI
 
             
-            openai_api_key = st.text_input("Wprowadź OpenAI API Key", key="chatbot_api_key", type="password")
- 
+            #openai_api_key = st.text_input("Wprowadź OpenAI API Key", key="chatbot_api_key", type="password")
+            openai_api_key = api_key = st.secrets["klucz"]
 
             st.title("💬 Jak zapytasz to odpowiem ....")
 
@@ -957,5 +933,6 @@ with st.container(border=True):
                 response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
                 msg = response.choices[0].message.content
                 st.session_state.messages.append({"role": "assistant", "content": msg})
+                
                 st.chat_message("assistant").write(msg)
 
