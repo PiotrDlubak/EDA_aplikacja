@@ -936,10 +936,16 @@ with st.container(border=True):
                 nazwa_zmiennej_y = 'czy zdał egzamin'
                 
                 tabela_x = pd.DataFrame({'x': [nazwy_zmiennych_X]})
-                tabela_y = pd.DataFrame({'y': [[nazwa_zmiennej_y]]})                                                       
+                tabela_y = pd.DataFrame({'y': [[nazwa_zmiennej_y]]})  
+                
+                st.markdown('Zmienne X - objaśniające')                                 
                 st.write(tabela_x, width=2000)
+                st.markdown('Zmienna Y - cel')  
                 st.write(tabela_y, width=2000)
-
+                
+                
+            
+                st.markdown('Podstawowe informacje o danych') 
                 st.dataframe(ana.informacje_o_dataframe(st.session_state.df), height=height, hide_index=True, width=2200)
 
 
@@ -951,6 +957,7 @@ with st.container(border=True):
                 wyniki = pd.DataFrame({
                     'Zmienne liczbowe': [numeric_variable_names],
                     'Zmienne tekstowe': [non_numeric_variable_names]}).T
+                
                 
                 st.dataframe(wyniki,  width=2000)
                 
@@ -1034,8 +1041,8 @@ with st.container(border=True):
                 # Definicja modelu z dodatkowymi parametrami
                 model = DecisionTreeClassifier(
                     random_state=42, 
-                    max_depth=5, 
-                    min_samples_split=2, 
+                    max_depth=4, 
+                    min_samples_split=3, 
                     min_samples_leaf=1, 
                     max_features=None
                     )
@@ -1052,27 +1059,30 @@ with st.container(border=True):
                             
                 pipe_DecisionTreeClassifier = Pipeline([
                 ('preprocessor', preprocessor),
-                ('model', DecisionTreeClassifier())])
+                ('model', model)])
                
                 
-                cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
-    
+                col1, col2, col3 = st.columns([1,1,1])
+                with col1:
+                    cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+        
 
-                # Ocena modelu za pomocą walidacji krzyżowej
-                cv_results = cross_validate(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv, scoring = {'accuracy': 'accuracy','f1': 'f1'})
+                    # Ocena modelu za pomocą walidacji krzyżowej
+                    cv_results = cross_validate(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv, scoring = {'accuracy': 'accuracy','f1': 'f1'})
 
-                score_train = pd.DataFrame(cv_results)
-                st.write('Wyniki skuteczności modelu wg CV:')
-                st.dataframe(score_train)
-                st.write(f'* średnia miara test_accuracy: {score_train["test_accuracy"].mean()}')
-                st.write(f'* odchylenie standardowe : {score_train["test_accuracy"].std()}')
-
-                score_train["test_accuracy"].plot(kind = 'line',  marker='o',linestyle='-', color='b', title='Skuteczność modelu danych testowych', xlabel='Fold Number', ylabel='Test Accuracy')
-                st.pyplot()
-
-
+                    score_train = pd.DataFrame(cv_results)
+                    st.write('Wyniki skuteczności modelu wg CV:')
+                    st.dataframe(score_train)
+                    st.write(f'* średnia miara test_accuracy: {score_train["test_accuracy"].mean()}')
+                    st.write(f'* odchylenie standardowe : {score_train["test_accuracy"].std()}')
+                
+                with col2:   
+                    st.write('')
+                    score_train["test_accuracy"].plot(kind = 'line',  marker='o',linestyle='-', color='b', title='Skuteczność modelu danych testowych', xlabel='Fold Number', ylabel='Test Accuracy')
+                    st.pyplot()
 
                 wyniki = cross_validate(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv, scoring='accuracy', return_train_score=True)
+
 
                 # Obliczasz średnie i odchylenia standardowe
                 srednia_test = round(wyniki['test_score'].mean(), 3)
@@ -1092,150 +1102,309 @@ with st.container(border=True):
                     'std train_score': [std_train]
                 })
 
+
+                col1, col2= st.columns([1,1])
+                with col1:
                 # Wyświetlasz ramkę danych
-                st.dataframe(wyniki)
-                st.dataframe(wyniki_df)
+                    st.dataframe(wyniki)
+                with col2:   
+                    st.dataframe(wyniki_df)
+                    
+                    
+                    
+                    
+                col1, col2= st.columns([1,1])
+                with col1:
+                    train_scores = wyniki['train_score']
+                    test_scores = wyniki['test_score']
 
-                train_scores = wyniki['train_score']
-                test_scores = wyniki['test_score']
+                    # Utwórz zakres kolumn
+                    fold_indices = np.arange(1, len(train_scores) + 1)
 
-                # Utwórz zakres kolumn
-                fold_indices = np.arange(1, len(train_scores) + 1)
-
-                # Stwórz wykres
-                plt.figure(figsize=(10, 6))
-                plt.plot(fold_indices, train_scores, marker='o', label='Train Accuracy', color='blue')
-                plt.plot(fold_indices, test_scores, marker='o', label='Test Accuracy', color='orange')
-                plt.xlabel('Fold Index')
-                plt.ylabel('Accuracy')
-                plt.title('Train and Test Accuracy Across Folds')
-                plt.legend()
-                plt.grid(True)
-        
-                st.pyplot()
-                
-             
-                # Tworzymy krzywą uczenia
-                train_sizes, train_scores, test_scores = learning_curve(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv, scoring='accuracy', train_sizes=np.linspace(0.1, 1.0, 10))
-
-                # Obliczamy średnie i odchylenia standardowe dla wyników treningowych i testowych
-                train_mean = np.mean(train_scores, axis=1)
-                train_std = np.std(train_scores, axis=1)
-                test_mean = np.mean(test_scores, axis=1)
-                test_std = np.std(test_scores, axis=1)
-
-                # Tworzymy wykres krzywej uczenia
-                plt.figure(figsize=(10, 6))
-                plt.plot(train_sizes, train_mean, marker='o', color='blue', label='Training accuracy')
-                plt.fill_between(train_sizes, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
-                plt.plot(train_sizes, test_mean, marker='o', color='orange', label='Test accuracy')
-                plt.fill_between(train_sizes, test_mean + test_std, test_mean - test_std, alpha=0.15, color='orange')
-
-                # Dodajemy opisy osi i tytuł
-                plt.title('Learning Curve')
-                plt.xlabel('Number of training examples')
-                plt.ylabel('Accuracy')
-                plt.legend()
-                plt.grid(True)
-                st.pyplot()
-        
-        
-                # Trenowanie modelu na całym zbiorze treningowym (opcjonalnie)
-                pipe_DecisionTreeClassifier.fit(X_train, y_train)
-
-                # Testowanie modelu na zbiorze testowym
-                y_pred = pipe_DecisionTreeClassifier.predict(X_test)
-
-                st.text(' ================================= OCENA MODELU K-NN PREDYKCJA NA ZBIORZE TRENINGOWYM ============================')
-
-
-                y_train_pred = cross_val_predict(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv)
-
-
-                def score_train():
-                    cm_test = confusion_matrix(y_train, y_train_pred)
-                    TP, FP, FN, TN = cm_test.ravel()
-                    accuracy = (TP + TN) / (TP + TN + FP + FN)
-                    error_ratio = (FP + FN) / (TP + TN + FP + FN)
-                    precision_pos = TP / (TP + FP)
-                    precision_neg = TN / (TN + FN)
-                    recall_pos = TP / (TP + FN)
-                    recall_neg = TN / (TN + FP)
-                    f1_score = 2 * (precision_pos * recall_pos) / (precision_pos + recall_pos)
-                    data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score'],
-                            'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score]}
-                    df = pd.DataFrame(data).set_index('miara')
-                    return df.T
-
-
-                st.dataframe(score_train())
-
-                # Tworzymy wykres macierzy pomyłek
-                cm_train = confusion_matrix(y_train, y_train_pred)
-                classes = ['Klasa Negatywna', 'Klasa Pozytywna']  # Zdefiniuj nazwy klas
-                disp = ConfusionMatrixDisplay(confusion_matrix=cm_train, display_labels=classes)
-                disp.plot(cmap=plt.cm.Blues, values_format=".2f")
-                plt.title("Macierz Pomyłek")
-                plt.xlabel("Przewidziane etykiety")
-                plt.ylabel("Rzeczywiste etykiety")
-                st.pyplot()
-
-
-
-
-
-                # Predykcja na danych testowych
-                y_test_pred = pipe_DecisionTreeClassifier.predict(X_test)
-
-                # Prawdopodobieństwo przynależności do klasy pozytywnej (klasa 1) dla danych testowych
-                y_test_proba = pipe_DecisionTreeClassifier.predict_proba(X_test)[:, 1]
-
-
-                def score_test():
-                    cm_test = confusion_matrix(y_test, y_test_pred)
-                    TP, FP, FN, TN = cm_test.ravel()
-                    accuracy = (TP + TN) / (TP + TN + FP + FN)
-                    error_ratio = (FP + FN) / (TP + TN + FP + FN)
-                    precision_pos = TP / (TP + FP)
-                    precision_neg = TN / (TN + FN)
-                    recall_pos = TP / (TP + FN)
-                    recall_neg = TN / (TN + FP)
-                    f1_score = 2 * (precision_pos * recall_pos) / (precision_pos + recall_pos)
-                    roc_auc_test = roc_auc_score(y_test, y_test_proba)
-                    cohen_kappa = cohen_kappa_score(y_test, y_test_pred)
-                    matthews_corrcoef_score = matthews_corrcoef(y_test, y_test_pred)
-                    data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score',
-                                    'roc_auc_test','cohen_kappa','matthews_corrcoef_score'],
-                            'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score,
-                                        roc_auc_test,cohen_kappa,matthews_corrcoef_score]}
-                    df = pd.DataFrame(data).set_index('miara')
-                    return df
-
-                st.text('-'*80)
-                st.text('OCENA MODELU K-NN PREDYKCJA NA ZBIORZE TESTOWYM ')
+                    # Stwórz wykres
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(fold_indices, train_scores, marker='o', label='Train Accuracy', color='blue')
+                    plt.plot(fold_indices, test_scores, marker='o', label='Test Accuracy', color='orange')
+                    plt.xlabel('Fold Index')
+                    plt.ylabel('Accuracy')
+                    plt.title('Train and Test Accuracy Across Folds')
+                    plt.legend()
+                    plt.grid(True)
             
-                st.dataframe(score_test().T)
+                    st.pyplot()
+                
+                with col2:
+                    # Tworzymy krzywą uczenia
+                    train_sizes, train_scores, test_scores = learning_curve(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv, scoring='accuracy', train_sizes=np.linspace(0.1, 1.0, 10))
 
-                cm_test = confusion_matrix(y_test, y_test_pred)
-                classes = ['nie zdał', 'zdał']  
-                disp = ConfusionMatrixDisplay(confusion_matrix=cm_test, display_labels=classes)
-                disp.plot(cmap=plt.cm.Blues, values_format=".2f")
-                plt.title("Macierz Pomyłek")
-                plt.xlabel("Przewidziane etykiety")
-                plt.ylabel("Rzeczywiste etykiety")
-                st.pyplot()
+                    # Obliczamy średnie i odchylenia standardowe dla wyników treningowych i testowych
+                    train_mean = np.mean(train_scores, axis=1)
+                    train_std = np.std(train_scores, axis=1)
+                    test_mean = np.mean(test_scores, axis=1)
+                    test_std = np.std(test_scores, axis=1)
+
+                    # Tworzymy wykres krzywej uczenia
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(train_sizes, train_mean, marker='o', color='blue', label='Training accuracy')
+                    plt.fill_between(train_sizes, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
+                    plt.plot(train_sizes, test_mean, marker='o', color='orange', label='Test accuracy')
+                    plt.fill_between(train_sizes, test_mean + test_std, test_mean - test_std, alpha=0.15, color='orange')
+
+                    # Dodajemy opisy osi i tytuł
+                    plt.title('Learning Curve')
+                    plt.xlabel('Number of training examples')
+                    plt.ylabel('Accuracy')
+                    plt.legend()
+                    plt.grid(True)
+                    st.pyplot()
+            
+        
+        
+    
+     
+            
+                st.text(' ================================= OCENA MODELU K-NN PREDYKCJA NA ZBIORZE TRENINGOWYM ============================')
+                col1, col2= st.columns([1,2])
+                
+                with col1:
+                            
+                        # Trenowanie modelu na całym zbiorze treningowym (opcjonalnie)
+                    pipe_DecisionTreeClassifier.fit(X_train, y_train)
+
+                        # Testowanie modelu na zbiorze testowym
+                    y_pred = pipe_DecisionTreeClassifier.predict(X_test)
+                        
+                    y_train_pred = cross_val_predict(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv)
+
+
+                    def score_train():
+                            cm_test = confusion_matrix(y_train, y_train_pred)
+                            TP, FP, FN, TN = cm_test.ravel()
+                            accuracy = (TP + TN) / (TP + TN + FP + FN)
+                            error_ratio = (FP + FN) / (TP + TN + FP + FN)
+                            precision_pos = TP / (TP + FP)
+                            precision_neg = TN / (TN + FN)
+                            recall_pos = TP / (TP + FN)
+                            recall_neg = TN / (TN + FP)
+                            f1_score = 2 * (precision_pos * recall_pos) / (precision_pos + recall_pos)
+                            data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score'],
+                                    'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score]}
+                            df = pd.DataFrame(data).set_index('miara')
+                            return df.T
+
+                    st.dataframe(score_train())
+
+                with col1:
+
+                    # Tworzymy wykres macierzy pomyłek
+                    cm_train = confusion_matrix(y_train, y_train_pred)
+                    classes = ['Klasa Negatywna', 'Klasa Pozytywna']  # Zdefiniuj nazwy klas
+                    disp = ConfusionMatrixDisplay(confusion_matrix=cm_train, display_labels=classes)
+                    disp.plot(cmap=plt.cm.Blues, values_format=".2f")
+                    plt.title("Macierz Pomyłek")
+                    plt.xlabel("Przewidziane etykiety")
+                    plt.ylabel("Rzeczywiste etykiety")
+                    st.pyplot()
+
+
+                st.text('============================= OCENA MODELU K-NN PREDYKCJA NA ZBIORZE TESTOWYM =======================================')
+
+                col1, col2= st.columns([1,2])
+                with col1:
+                    # Predykcja na danych testowych
+                    y_test_pred = pipe_DecisionTreeClassifier.predict(X_test)
+
+                    # Prawdopodobieństwo przynależności do klasy pozytywnej (klasa 1) dla danych testowych
+                    y_test_proba = pipe_DecisionTreeClassifier.predict_proba(X_test)[:, 1]
+
+
+                    def score_test():
+                        cm_test = confusion_matrix(y_test, y_test_pred)
+                        TP, FP, FN, TN = cm_test.ravel()
+                        accuracy = (TP + TN) / (TP + TN + FP + FN)
+                        error_ratio = (FP + FN) / (TP + TN + FP + FN)
+                        precision_pos = TP / (TP + FP)
+                        precision_neg = TN / (TN + FN)
+                        recall_pos = TP / (TP + FN)
+                        recall_neg = TN / (TN + FP)
+                        f1_score = 2 * (precision_pos * recall_pos) / (precision_pos + recall_pos)
+                        roc_auc_test = roc_auc_score(y_test, y_test_proba)
+                        cohen_kappa = cohen_kappa_score(y_test, y_test_pred)
+                        matthews_corrcoef_score = matthews_corrcoef(y_test, y_test_pred)
+                        data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score',
+                                        'roc_auc_test','cohen_kappa','matthews_corrcoef_score'],
+                                'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score,
+                                            roc_auc_test,cohen_kappa,matthews_corrcoef_score]}
+                        df = pd.DataFrame(data).set_index('miara')
+                        return df
+
+    
+                    st.dataframe(score_test().T)
+                    
+                with col1:    
+    
+                    cm_test = confusion_matrix(y_test, y_test_pred)
+                    classes = ['nie zdał', 'zdał']  
+                    disp = ConfusionMatrixDisplay(confusion_matrix=cm_test, display_labels=classes)
+                    disp.plot(cmap=plt.cm.Blues, values_format=".2f")
+                    plt.title("Macierz Pomyłek")
+                    plt.xlabel("Przewidziane etykiety")
+                    plt.ylabel("Rzeczywiste etykiety")
+                    st.pyplot()
+
+
+                col1, col2= st.columns([1,2])
+                with col1:
+
+                    # Oblicz krzywą ROC i pole pod krzywą ROC (AUC-ROC)
+                    fpr, tpr, thresholds = roc_curve(y_test, y_test_proba)
+                    roc_auc = roc_auc_score(y_test, y_test_proba)
+                    plt.figure(figsize=(6, 4))
+                    plt.plot(fpr, tpr, lw=1, color='red', linestyle='--', label='Krzywa ROC (AUC = %0.2f)' % roc_auc)
+                    plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
+                    plt.xlabel('False Positive Rate (FPR)')
+                    plt.ylabel('True Positive Rate (TPR)')
+                    plt.title('Krzywa ROC')
+                    plt.legend(loc='lower right')
+                    plt.yticks(np.arange(0, 1.1, 0.1))
+                    plt.xticks(np.arange(0, 1.1, 0.1))
+                    plt.grid(True)
+                    thresh_points = np.linspace(0, 1, num=10)
+                    for thresh_point in thresh_points:
+                        index = np.argmin(np.abs(thresholds - thresh_point))
+                        plt.scatter(fpr[index], tpr[index], c='blue', s=20)
+                        plt.annotate(f'{thresh_point:.2f}', (fpr[index], tpr[index]), textcoords="offset points", xytext=(10, -10), ha='center', fontsize=8)
+
+                    st.pyplot()
+
+
+                    from sklearn.metrics import precision_recall_curve, auc
+
+                    # Przekształć etykiety na 0 i 1
+                    y_test_binary = y_test
+
+
+                    precision, recall, thresholds = precision_recall_curve(y_test_binary, y_test_proba)
+                    auc_pr = auc(recall, precision)
+
+                    plt.figure(figsize=(6, 4))
+                    plt.plot(recall, precision, label='Krzywa Precyzja-Czułość (AUC-PR = {:.2f})'.format(auc_pr))
+                    plt.xlabel('Czułość (Recall)')
+                    plt.ylabel('Precyzja (Precision)')
+                    plt.title('Krzywa Precyzja-Czułość')
+                    plt.legend(loc='lower left')
+                    plt.yticks(np.arange(0, 1.1, 0.1))
+                    plt.xticks(np.arange(0, 1.1, 0.1))
+                    plt.grid(True)
+                    st.pyplot()
+                    
+                    
+                    
+                    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+                    import pandas as pd
+                    import matplotlib.pyplot as plt
+
+                    thresholds = np.arange(0, 1.01, 0.05)
+
+                    # Przekształć etykiety na 0 i 1
+                    y_test_binary = y_test
+
+                    accuracy_scores = []
+                    precision_scores = []
+                    recall_scores = []
+                    f1_scores = []
+                    confusion_matrices = []
+
+                    print("Wyniki miar jakości klasyfikacji dla różnej wielkosci progu:")
+                    print()
+                    # Testujemy różne progi
+                    threshold_results = []
+                    for thresh_point in thresholds:
+                        # Używamy wybranego progu do przekształcenia prawdopodobieństw na etykiety klasyfikacji
+                        y_test_pred_thresh = (y_test_proba >= thresh_point).astype(int)
+                        
+                        # Obliczamy miary jakości klasyfikacji dla danego progu
+                        accuracy = accuracy_score(y_test_binary, y_test_pred_thresh)
+                        precision = precision_score(y_test_binary, y_test_pred_thresh)
+                        recall = recall_score(y_test_binary, y_test_pred_thresh)
+                        f1 = f1_score(y_test_binary, y_test_pred_thresh)
+                        accuracy_scores.append(accuracy)
+                        precision_scores.append(precision)
+                        recall_scores.append(recall)
+                        f1_scores.append(f1)
+                        cm = confusion_matrix(y_test_binary, y_test_pred_thresh)
+                        TP, FP, FN, TN = cm.ravel()
+                        threshold_results.append((thresh_point, TP, FP, FN, TN, accuracy, precision, recall, f1))
+
+                    threshold_results_df = pd.DataFrame(threshold_results, columns=['Threshold', 'TP', 'FP', 'FN', 'TN','Accuracy', 'Precision', 'Recall', 'F1 Score'])
+                    st.write(threshold_results_df.sort_values(by='Threshold', ascending=True).head(20))
+                    print()
+
+
+                    # Tworzenie wykresu
+                    plt.figure(figsize=(10, 4))
+                    line_styles = ['-', '--', ':']  
+                    metric_names = ['Precision', 'Recall', 'F1 Score']
+                    for i, metric in enumerate([precision_scores, recall_scores, f1_scores]):
+                        plt.plot(thresholds, metric, label=metric_names[i], lw=1.5, linestyle=line_styles[i])
+                    plt.legend(fontsize='small')
+                    plt.xlabel('Próg', fontsize=12)
+                    plt.ylabel('Wartość miary', fontsize=12)
+                    plt.title('Miary jakości klasyfikacji dla różnych progów', fontsize=14)
+                    plt.xticks(np.arange(0, 1.1, 0.05))
+                    plt.grid(True, linestyle='--', alpha=0.2)
+
+                    st.pyplot()
 
 
 
+                    # Użyj wytrenowanego modelu na danych testowych przy ustalonym progu
+                    y_test_pred = (y_test_proba >= 0.6).astype(int)
+
+                    def score_test():
+                        cm_test = confusion_matrix(y_test, y_test_pred)
+                        TP, FP, FN, TN = cm_test.ravel()
+                        accuracy = (TP + TN) / (TP + TN + FP + FN)
+                        error_ratio = (FP + FN) / (TP + TN + FP + FN)
+                        precision_pos = TP / (TP + FP)
+                        precision_neg = TN / (TN + FN)
+                        recall_pos = TP / (TP + FN)
+                        recall_neg = TN / (TN + FP)
+                        f1_score = 2 * (precision_pos * recall_pos) / (precision_pos + recall_pos)
+                        roc_auc_test = roc_auc_score(y_test, y_test_proba)
+                        cohen_kappa = cohen_kappa_score(y_test, y_test_pred)
+                        matthews_corrcoef_score = matthews_corrcoef(y_test, y_test_pred)
+                        data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score',
+                                        'roc_auc_test','cohen_kappa','matthews_corrcoef_score'],
+                                'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score,
+                                            roc_auc_test,cohen_kappa,matthews_corrcoef_score]}
+                        df = pd.DataFrame(data).set_index('miara')
+                        return df
+
+                    st.dataframe(score_test().T)
+                    
+                    
+                    cm_test = confusion_matrix(y_test_binary, y_test_pred)
+
+                    plt.figure(figsize=(3, 3))
+                    sns.set(font_scale=1.2)  
+                    sns.set_style("whitegrid") 
+                    cmap = sns.color_palette("Blues") 
+
+                    sns.heatmap(cm_test, annot=True, fmt="d", cmap=cmap, cbar=False, linewidths=0.5, linecolor='gray')
+                    plt.xlabel('Predicted', fontsize=14)
+                    plt.ylabel('Actual', fontsize=14)
+                    plt.title('Confusion Matrix', fontsize=16)
+                    plt.xticks(fontsize=12)
+                    plt.yticks(fontsize=12)
+                    st.pyplot()
+
+
+                    importances = model.feature_importances_
+                    st.write(importances)
 
 
 
-
-
-
-
-                # # Dane o ważności cech i ich nazwach
-                # importances = pipe_DecisionTreeClassifier.feature_importances_
                 # feature_names = ['płeć', 'pali', 'wykształcenie', 'liczba osób', 'typ szkoły',
                 #     'dochód roczny', 'srednia ocen sem', 'tryb nauki', 'zamieszkanie',
                 #     'problemy z rówieśnikami', 'czas do szkoły min',
@@ -1244,51 +1413,230 @@ with st.container(border=True):
                 #     'czas spedzany tygodniu na social mediach w godz',
                 #     'ulubione social media']
 
-                # # Tworzenie ramki danych z ważnością cech
-                # feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
-
-                # # Sortowanie ramki danych według ważności w kolejności malejącej
-                # feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
-
-                # # Tworzenie wykresu słupkowego
-                # plt.figure(figsize=(8, 4))
-                # plt.barh(feature_importance_df['Feature'], feature_importance_df['Importance'], color='skyblue')
-                # plt.xlabel('Ważność cech')
-                # plt.ylabel('Cecha')
-                # plt.title('Ważność cech w modelu drzewa decyzyjnego')
-                # plt.gca().invert_yaxis()  # Odwrócenie osi Y, aby najważniejsze cechy były na górze
-                # st.pyplot()
 
 
 
-                # Oblicz krzywą ROC i pole pod krzywą ROC (AUC-ROC)
-                fpr, tpr, thresholds = roc_curve(y_test, y_test_proba)
-                roc_auc = roc_auc_score(y_test, y_test_proba)
-                plt.figure(figsize=(6, 4))
-                plt.plot(fpr, tpr, lw=1, color='red', linestyle='--', label='Krzywa ROC (AUC = %0.2f)' % roc_auc)
-                plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
-                plt.xlabel('False Positive Rate (FPR)')
-                plt.ylabel('True Positive Rate (TPR)')
-                plt.title('Krzywa ROC')
-                plt.legend(loc='lower right')
-                plt.yticks(np.arange(0, 1.1, 0.1))
-                plt.xticks(np.arange(0, 1.1, 0.1))
-                plt.grid(True)
-                thresh_points = np.linspace(0, 1, num=10)
-                for thresh_point in thresh_points:
-                    index = np.argmin(np.abs(thresholds - thresh_point))
-                    plt.scatter(fpr[index], tpr[index], c='blue', s=20)
-                    #plt.annotate(f'{thresh_point:.2f}', (fpr[index], tpr[index]), textcoords="offset points", xytext=(20, -10), ha='center', fontsize=9)
 
-                st.pyplot()
+                    import pandas as pd
+                    # import matplotlib.pyplot as plt
+
+                    # # Obliczenie znaczenia cech (feature importances)
+                    # importances = model.feature_importances_
+
+                    # # Tworzenie DataFrame z nazwami cech i ich znaczeniami
+                    # features_df = pd.DataFrame({
+                    #     'Feature': X_train.columns,  
+                    #     'Importance': importances
+                    # })
+
+                    # # Sortowanie cech według ich znaczenia
+                    # features_df = features_df.sort_values(by='Importance', ascending=False)
+
+                    # # Wyświetlanie dataframe z ważnością cech
+                    # st.dataframe(features_df)
+
+                    # # Tworzenie wykresu ważności cech
+                    # plt.figure(figsize=(10, 6))
+                    # plt.barh(features_df['Feature'], features_df['Importance'], color='skyblue')
+                    # plt.xlabel('Ważność cechy')
+                    # plt.ylabel('Cecha')
+                    # plt.title('Ważność cech w modelu')
+                    # plt.gca().invert_yaxis()  # Odwrócenie osi Y dla czytelności
+                    # st.pyplot()
 
 
 
 
 
+                    import numpy as np
+                    import matplotlib.pyplot as plt
+                    from sklearn.model_selection import validation_curve
+
+                    # Parametry do testowania # Parametry do testowania
+                    param_range = [1, 2, 3, 4, 5,6,7,8,9,10]  # Przykładowe wartości dla minimalnej liczby próbek w liściu
+
+                    # Tworzenie krzywej uczenia
+                    train_scores, test_scores = validation_curve(
+                        estimator=pipe_DecisionTreeClassifier,  # Model
+                        X=X_train,  # Dane treningowe
+                        y=y_train,  # Etykiety treningowe
+                        param_name='model__min_samples_leaf',  # Parametr, który chcemy testować
+                        param_range=param_range,  # Zakres testowanych wartości parametru
+                        cv=5  # Liczba podziałów walidacji krzyżowej
+                    )
+
+                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
+                    train_mean = np.mean(train_scores, axis=1)
+                    train_std = np.std(train_scores, axis=1)
+                    test_mean = np.mean(test_scores, axis=1)
+                    test_std = np.std(test_scores, axis=1)
+                    
+                    
+                    
+                     #Tworzenie DataFrame z wynikami krzywej uczenia
+                    results_df = pd.DataFrame({
+                        'min_samples_leaf': param_range,
+                        'train_mean_score': train_mean,
+                        'test_mean_score': test_mean
+                    })
+
+                    # Wyświetlanie wyników
+                    st.dataframe(results_df)
+                                        
+                    
+
+                    # Tworzenie wykresu
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
+                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
+
+                    plt.title('Krzywa uczenia')
+                    plt.xlabel('Minimalna liczba próbek w liściu')
+                    plt.ylabel('Wynik klasyfikacji')
+                    plt.grid()
+                    plt.legend(loc='lower right')
+                    plt.xticks(param_range)
+                    st.pyplot()
+                    param_range = [1, 2, 3, 4, 5,6,7,8,9,10]  # Przykładowe wartości dla minimalnej liczby próbek w liściu
+
+                    # Tworzenie krzywej uczenia
+                    train_scores, test_scores = validation_curve(
+                        estimator=pipe_DecisionTreeClassifier,  # Model
+                        X=X_train,  # Dane treningowe
+                        y=y_train,  # Etykiety treningowe
+                        param_name='model__min_samples_leaf',  # Parametr, który chcemy testować
+                        param_range=param_range,  # Zakres testowanych wartości parametru
+                        cv=5  # Liczba podziałów walidacji krzyżowej
+                    )
+
+                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
+                    train_mean = np.mean(train_scores, axis=1)
+                    train_std = np.std(train_scores, axis=1)
+                    test_mean = np.mean(test_scores, axis=1)
+                    test_std = np.std(test_scores, axis=1)
+                    
+                    
+                    
+                     #Tworzenie DataFrame z wynikami krzywej uczenia
+                    results_df = pd.DataFrame({
+                        'min_samples_leaf': param_range,
+                        'train_mean_score': train_mean,
+                        'test_mean_score': test_mean
+                    })
+
+                    # Wyświetlanie wyników
+                    st.dataframe(results_df)
+                                        
+                    
+
+                    # Tworzenie wykresu
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
+                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
+
+                    plt.title('Krzywa uczenia')
+                    plt.xlabel('Minimalna liczba próbek w liściu')
+                    plt.ylabel('Wynik klasyfikacji')
+                    plt.grid()
+                    plt.legend(loc='lower right')
+                    plt.xticks(param_range)
+                    st.pyplot()
+                    
+                    
+
+                    # Parametry do testowania
+                    param_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # Przykładowe wartości dla maksymalnej głębokości drzewa
+
+                    # Tworzenie krzywej uczenia
+                    train_scores, test_scores = validation_curve(
+                        estimator=pipe_DecisionTreeClassifier,  # Model
+                        X=X_train,  # Dane treningowe
+                        y=y_train,  # Etykiety treningowe
+                        param_name='model__max_depth',  # Parametr, który chcemy testować (zmiana na max_depth)
+                        param_range=param_range,  # Zakres testowanych wartości parametru
+                        cv=5  # Liczba podziałów walidacji krzyżowej
+                    )
+
+                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
+                    train_mean = np.mean(train_scores, axis=1)
+                    train_std = np.std(train_scores, axis=1)
+                    test_mean = np.mean(test_scores, axis=1)
+                    test_std = np.std(test_scores, axis=1)
+
+                    # Tworzenie DataFrame z wynikami krzywej uczenia
+                    results_df = pd.DataFrame({
+                        'max_depth': param_range,  # Zmiana na max_depth
+                        'train_mean_score': train_mean,
+                        'test_mean_score': test_mean
+                    })
+
+                    # Wyświetlanie wyników
+                    st.dataframe(results_df)
+
+                    # Tworzenie wykresu
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
+                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
+
+                    plt.title('Krzywa uczenia')
+                    plt.xlabel('Maksymalna głębokość drzewa')
+                    plt.ylabel('Wynik klasyfikacji')
+                    plt.grid()
+                    plt.legend(loc='lower right')
+                    plt.xticks(param_range)
+                    st.pyplot()
 
 
 
+                    # Parametry do testowania
+                    param_range = [1, 2, 3, 4, 5, 6]  # Przykładowe wartości dla minimalnej liczby próbek do podziału węzła
+
+                    # Tworzenie krzywej uczenia
+                    train_scores, test_scores = validation_curve(
+                        estimator=pipe_DecisionTreeClassifier,  # Model
+                        X=X_train,  # Dane treningowe
+                        y=y_train,  # Etykiety treningowe
+                        param_name='model__min_samples_split',  # Parametr, który chcemy testować (zmiana na min_samples_split)
+                        param_range=param_range,  # Zakres testowanych wartości parametru
+                        cv=5  # Liczba podziałów walidacji krzyżowej
+                    )
+
+                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
+                    train_mean = np.mean(train_scores, axis=1)
+                    train_std = np.std(train_scores, axis=1)
+                    test_mean = np.mean(test_scores, axis=1)
+                    test_std = np.std(test_scores, axis=1)
+
+                    # Tworzenie DataFrame z wynikami krzywej uczenia
+                    results_df = pd.DataFrame({
+                        'min_samples_split': param_range,  # Zmiana na min_samples_split
+                        'train_mean_score': train_mean,
+                        'test_mean_score': test_mean
+                    })
+
+                    # Wyświetlanie wyników
+                    st.dataframe(results_df)
+
+                    # Tworzenie wykresu
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
+                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
+
+                    plt.title('Krzywa uczenia')
+                    plt.xlabel('Minimalna liczba próbek do podziału węzła')
+                    plt.ylabel('Wynik klasyfikacji')
+                    plt.grid()
+                    plt.legend(loc='lower right')
+                    plt.xticks(param_range)
+                    st.pyplot()
 
 
 
