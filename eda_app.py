@@ -60,8 +60,11 @@ with st.container(border=True):
 with st.container(border=True):
 
    
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["📈 O aplikacji", "⏏️ Załaduj dane","🔎 Podgląd danych", "🛠️ Ustaw parametry analizy", "🗓️ Raport z analizy - EDA", "➿ Uczenie maszynowe  ML","📖 pomoc"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 , tab8 = st.tabs(["📈 O aplikacji", "⏏️ Załaduj dane","🔎 Podgląd danych", "🛠️ Ustaw parametry analizy",
+                                                        "🗓️ Raport z analizy - EDA", "🦾 ML- konfiguracja i trenowanie", "🎯  ML - testowanie na nowych nadych","📖 pomoc"])
     st.write('')
+    
+    
     with tab1:    # o aplikacji
         st.write('')
        
@@ -869,7 +872,8 @@ with st.container(border=True):
                     st. write('')
                     st.write(ana.test_rownowaznosci_kategorii(st.session_state.df, wybrana_kolumna, alfa= alpha))
 
-        with tab6:
+    
+    with tab6:
             st.subheader(' :blue[Moduł w budowie...............]🏗️')
             col1, col2= st.columns([2,2], gap = "medium")
             col1.image('under.jpg',width=100)
@@ -1638,6 +1642,155 @@ with st.container(border=True):
                     plt.xticks(param_range)
                     st.pyplot()
 
+                   # Przykładowy nowy wiersz danych
+                    # new_data_point = [[5.1, 3.5, 1.4, 0.2]]  # Przykładowy wiersz danych dla kwiatu Iris
+
+                    # # Przewidywanie klasy dla nowego wiersza danych
+                    # predicted_class = model.predict(new_data_point)
+
+                    # # Wyświetlenie przewidywanej klasy dla nowego wiersza danych
+                    # print("Przewidziana klasa dla nowego wiersza danych:", iris.target_names[predicted_class[0]])
+
+                    # Tworzenie tablicy NumPy z pojedynczego wiersza danych
+                    
+                    
+                    
+                    import streamlit as st
+                    import pandas as pd
+
+    with tab7:
+        with st.container(border = True):
+                st.write('Wprowdź nowe dane do modelu:')
+                st.write('')
+
+                col1, col2, col3, col4  = st.columns(4, gap = 'large')
+                with col1:
+  
+                    # Płeć
+                    #st.write('# Płeć')
+                    selected_gender = st.selectbox('Wybierz płeć:', df['płeć'].unique())
+
+                    # Pali
+                    #st.write('### Pali')
+                    selected_smoke = st.selectbox('Czy pali:', df['pali'].unique())
+
+                    # Wykształcenie
+                    #st.write('### Wykształcenie')
+                    selected_education = st.selectbox('Wybierz wykształcenie:', df['wykształcenie'].unique())
+                
+
+                    # Liczba osób
+                    #st.write('### Liczba osób')
+                    selected_persons = st.number_input('Podaj liczbę osób:', min_value=0)
+
+                    # Typ szkoły
+                    #st.write('### Typ szkoły')
+                    selected_school_type = st.selectbox('Wybierz typ szkoły:', df['typ szkoły'].unique())
+
+                with col2:
+                    # Dochód roczny
+                    #st.write('### Dochód roczny')
+                    selected_income = st.number_input('Podaj dochód roczny:', min_value=0)
+
+                    # Średnia ocen semestralna
+                    #st.write('### Średnia ocen semestralna')
+                    selected_grades = st.number_input('Podaj średnią ocen semestralną:', min_value=0.0, max_value=5.0, step=0.1)
+
+                    # Tryb nauki
+                    #st.write('### Tryb nauki')
+                    selected_study_mode = st.selectbox('Wybierz tryb nauki:', df['tryb nauki'].unique())
+
+                    # Zamieszkanie
+                    #st.write('### Zamieszkanie')
+                    selected_residence = st.selectbox('Wybierz miejsce zamieszkania:', df['zamieszkanie'].unique())
+                    
+                with col3:
+
+                    # Problemy z rówieśnikami
+                    #st.write('### Problemy z rówieśnikami')
+                    selected_peer_problems = st.selectbox('Czy występują problemy z rówieśnikami:', df['problemy z rówieśnikami'].unique())
+
+        
+                    # Czas do szkoły (min)
+                    #st.write('### Czas do szkoły (min)')
+                    selected_time_to_school = st.number_input('Podaj czas do szkoły (min):', min_value=0)
+
+                    # Godziny nauki przed egzaminem
+                    #st.write('### Godziny nauki przed egzaminem')
+                    selected_study_hours = st.number_input('Podaj godziny nauki przed egzaminem:', min_value=0)
+
+                    # Nadużywanie alkoholu
+                    #st.write('### Nadużywanie alkoholu')
+                    selected_alcohol_abuse = st.selectbox('Czy występuje nadużywanie alkoholu:', df['nadużywanie alkoholu'].unique())
+
+                with col4:
+                    # Poziom stresu
+                    #st.write('### Poziom stresu')
+                    selected_stress_level = st.number_input('Podaj poziom stresu:', min_value=0)
+
+                    # Korzystanie z korepetycji
+                    #st.write('### Korzystanie z korepetycji')
+                    selected_tutoring = st.selectbox('Czy korzysta z korepetycji:', df['korzystanie z korepetycji'].unique())
+
+                    # Czas spędzany tygodniu na social mediach w godz
+                    #st.write('### Czas spędzany tygodniu na social mediach w godz')
+                    selected_social_media_time = st.number_input('Podaj czas spędzany na social mediach (godz):', min_value=0)
+
+                    # Ulubione social media
+                    #st.write('### Ulubione social media')
+                    selected_social_media = st.selectbox('Wybierz ulubione social media:', df['ulubione social media'].unique())
+                    
+                    
+                    
+                    # Utwórz nowy dataframe na podstawie wyborów użytkownika
+                    new_df = pd.DataFrame({
+                        'płeć': [selected_gender],
+                        'pali': [selected_smoke],
+                        'wykształcenie': [selected_education],
+                        'liczba osób': [selected_persons],
+                        'typ szkoły': [selected_school_type],
+                        'dochód roczny': [selected_income],
+                        'srednia ocen sem': [selected_grades],
+                        'tryb nauki': [selected_study_mode],
+                        'zamieszkanie': [selected_residence],
+                        'problemy z rówieśnikami': [selected_peer_problems],
+                        'czas do szkoły min': [selected_time_to_school],
+                        'godzin nauki przed egzaminem': [selected_study_hours],
+                        'nadużywanie alkoholu': [selected_alcohol_abuse],
+                        'poziom stresu': [selected_stress_level],
+                        'korzystanie z korepetycji': [selected_tutoring],
+                        'czas spedzany tygodniu na social mediach w godz': [selected_social_media_time],
+                        'ulubione social media': [selected_social_media]
+                    })
+
+
+                    
+                     
+        with st.container(border = True):
+                    st.write('Wynik klasyfikacji modelu:')
+                               
+                    st.write('Nowy dataframe:')
+                    st.write(new_df)
+                    
+                    go  = st.button('Klasyfikuj!')
+                    if go:
+                        
+                        # Przewidywanie klasy dla nowego wiersza danych
+                        predicted_class = pipe_DecisionTreeClassifier.predict(new_df)
+                        st.write('Wynik klasyfikacji modelu:')
+                        st.write('')
+                        if predicted_class == 0:
+                            st.subheader('Nie zdał' )
+                        else:
+                            st.subheader('Zdał')
+                    else : pass
+                    
+                    # st.write('Przewidziana kategoria 0 - nie zda, 1- zda')
+                    # st.write(predicted_class)
+
+
+                    #ValueError: columns are missing: {'czas spedzany tygodniu na social mediach w godz', 'srednia ocen sem'}
+
 
 
 
@@ -1645,7 +1798,7 @@ with st.container(border=True):
 
         # client = OpenAI(api_key = 'API_KEY')    
 
-        with tab7:
+    with tab8:
             from openai import OpenAI
             import streamlit as st
             
