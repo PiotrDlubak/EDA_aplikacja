@@ -133,14 +133,15 @@ with st.container(border=True):
 
         # Umieszczenie wczytanych danych w słowniku
         dane_dict = {
-            #"test": test,
-            "sklepy": sklep,
+            
             "szkoła" : szkoła,
-            #"iris": iris,
-            #"napiwki": napiwiki
+            "sklepy": sklep,
+            "iris": iris,
+            "napiwki": napiwiki,
+            "test": test
         }
 
-
+        
         typ_ladowania = st.radio(":blue[Ładowanie danych:]", ['Dane demonstracyjne'], horizontal=True)
         if typ_ladowania == 'Dane demonstracyjne':
                         wybrane_dane = st.selectbox("Wybierz dane demonstracyjne", list(dane_dict.keys()))
@@ -256,6 +257,7 @@ with st.container(border=True):
                             with col3:    
                                 wer_norm = st.checkbox('testowanie normalnosci rozkładu')
                     st.write('')
+
 
                         
                     st.set_option('deprecation.showPyplotGlobalUse', False)   
@@ -458,27 +460,55 @@ with st.container(border=True):
                         st.dataframe(ana.testy_normalnosci_jeden(st.session_state.df, wybrana_kolumna,  wybrane_testy=norm ,alpha=alpha))
                     
                   
+        
                     
-                with st.container(border=True):
-                        st.write(':blue[**Estymacja przedziałowa:**]')
-                        col1, col2 , col3= st.columns([1,1,3], gap = 'large')
-                        with col1:
-                            alpha = st.slider('Określ poziom alpha dla testu:  ',0.9,0.99, step = 0.01, value = 0.95)
-                        with col2:   
-                            boot  = st.number_input('Określ liczbę n_bootstraps: ', value =100)                             
-                        if ci_srednia:
+                                                       
+                if ci_srednia:
+                        with st.container(border=True):
+                            st.write(':blue[**Estymacja przedziałowa:**]')
+                            col1, col2 , col3= st.columns([1,1,3], gap = 'large')
+                            with col1:
+                                alpha = st.slider('Określ poziom alpha dla testu:  ',0.9,0.99, step = 0.01, value = 0.95, key='a')
+                            with col2:   
+                                boot  = st.number_input('Określ liczbę n_bootstraps: ', value =100, key='b')
+                        
+                        
                             wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'średnia', alpha=alpha, n_bootstraps=boot)
                             st.write(':red[przedział ufnosci do średniej arytmetycznej:]')
                             st.dataframe(wyn)
-                        if ci_mediana:
+                            
+                if ci_mediana:
+                        with st.container(border=True):
+                            st.write(':blue[**Estymacja przedziałowa:**]')
+                            col1, col2 , col3= st.columns([1,1,3], gap = 'large')
+                            with col1:
+                                alpha = st.slider('Określ poziom alpha dla testu:  ',0.9,0.99, step = 0.01, value = 0.95, key='c')
+                            with col2:   
+                                boot  = st.number_input('Określ liczbę n_bootstraps: ', value =100, key='d')
                             wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'mediana', alpha=alpha, n_bootstraps=boot)
                             st.write(':red[przedział ufnosci do mediany:]')
                             st.dataframe(wyn)
-                        if ci_std:
+                if ci_std:
+                        with st.container(border=True):
+                            st.write(':blue[**Estymacja przedziałowa:**]')
+                            col1, col2 , col3= st.columns([1,1,3], gap = 'large')
+                            with col1:
+                                alpha = st.slider('Określ poziom alpha dla testu:  ',0.9,0.99, step = 0.01, value = 0.95, key='e')
+                            with col2:   
+                                boot  = st.number_input('Określ liczbę n_bootstraps: ', value =100, key='f')
                             wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'odchylenie', alpha=alpha, n_bootstraps=boot)
                             st.write(':red[przedział ufnosci do odchylenia standardowego:]')
                             st.dataframe(wyn)
-                        if ci_q1:
+                            
+                if ci_q1:
+                                
+                    with st.container(border=True):
+                            st.write(':blue[**Estymacja przedziałowa:**]')
+                            col1, col2 , col3= st.columns([1,1,3], gap = 'large')
+                            with col1:
+                                alpha = st.slider('Określ poziom alpha dla testu:  ',0.9,0.99, step = 0.01, value = 0.95, key='g')
+                            with col2:   
+                                boot  = st.number_input('Określ liczbę n_bootstraps: ', value =100, key='h')
                             wyn = ana.bootstrap_ci(st.session_state.df, wybrana_kolumna , 'q25', alpha=alpha, n_bootstraps=boot)
                             st.write(':red[przedział ufnosci do Q1 [.025]:]')
                             st.dataframe(wyn)   
@@ -874,9 +904,9 @@ with st.container(border=True):
 
     
     with tab6:
-            st.subheader(' :blue[Moduł w budowie...............]🏗️')
+            #st.subheader(' :blue[Moduł w budowie...............]🏗️')
             col1, col2= st.columns([2,2], gap = "medium")
-            col1.image('under.jpg',width=100)
+            #col1.image('under.jpg',width=100)
 
 
 
@@ -929,51 +959,53 @@ with st.container(border=True):
             if wybrane_dane =='szkoła':
                 st.info(f"Wybrano dane demonstracyjne: {wybrane_dane}")
                 df = st.session_state.df
-             
+                
+                st.subheader('ETAP 1. Podstawowe informacje o danych: ')
+                
+                st.dataframe(ana.informacje_o_dataframe(st.session_state.df), height=height, hide_index=True, width=2200)
+                
+                st.subheader('ETAP 2. Podział zmiennych ')
+                
                 # Tworzenie DataFrame'a dla zmiennych objaśniających (X) i zmiennej docelowej (y)
                 X = df.drop('czy zdał egzamin', axis=1)
                 y = df['czy zdał egzamin'] 
 
-                
                 # Pobieranie nazw zmiennych X i nazwy zmiennej y
                 nazwy_zmiennych_X = X.columns.tolist()
                 nazwa_zmiennej_y = 'czy zdał egzamin'
                 
-                tabela_x = pd.DataFrame({'x': [nazwy_zmiennych_X]})
-                tabela_y = pd.DataFrame({'y': [[nazwa_zmiennej_y]]})  
+                #tabela_x = pd.Series({'x': [nazwy_zmiennych_X]})
+                #tabela_y = pd.DataFrame({'y': [[nazwa_zmiennej_y]]})  
                 
-                st.markdown('Zmienne X - objaśniające')                                 
-                st.write(tabela_x, width=2000)
-                st.markdown('Zmienna Y - cel')  
-                st.write(tabela_y, width=2000)
+                st.markdown('[X] - cechy objaśniające')                                 
+                st.write(nazwy_zmiennych_X)
+                st.markdown('w tym:') 
                 
                 
-            
-                st.markdown('Podstawowe informacje o danych') 
-                st.dataframe(ana.informacje_o_dataframe(st.session_state.df), height=height, hide_index=True, width=2200)
-
-
+                
                 numeric_variables = X.select_dtypes(include=['int64', 'float64'])
                 numeric_variable_names = numeric_variables.columns.tolist()
                 non_numeric_variables = X.select_dtypes(exclude=['int64', 'float64'])
                 non_numeric_variable_names = non_numeric_variables.columns.tolist()
+                
+                col1, col2 = st.columns(2)
+                col1.write('Zmienne numeryczne:')
+                col1.write(numeric_variable_names)
+                col2.write('Zmienne kategorialne:')
+                col2.write(non_numeric_variable_names)
+                
             
-                wyniki = pd.DataFrame({
-                    'Zmienne liczbowe': [numeric_variable_names],
-                    'Zmienne tekstowe': [non_numeric_variable_names]}).T
+                st.markdown(f'[Y] - cecha celu: {nazwa_zmiennej_y}')  
+                
+                st.info(f' UWAGA !:    Typ zmiennej celu: {y.dtype}, wartości zmiennej celu:  {y.unique()}')
                 
                 
-                st.dataframe(wyniki,  width=2000)
-                
-                
-                prop = { 'Struktura zmiennej celu': y.value_counts(normalize=True) * 100,}
+                     
+                prop = { 'Struktura zmiennej celu  przez kodowaniem': y.value_counts(normalize=True) * 100,}
                 st.dataframe(pd.DataFrame(prop))
                 
-        
+                st.write('kodowanie zmiennej celu') 
 
-                st.info(f' UWAGA !:    Typ zmiennej celu: {y.dtype}, wartości zmiennej celu:  {y.unique()}')
-                st.write('kodowanie zmiennej celu')
-                
 
                 # Utwórz instancję LabelEncoder
                 label_encoder = LabelEncoder()
@@ -981,12 +1013,13 @@ with st.container(border=True):
                 # Przekształć zmienną y
                 y = label_encoder.fit_transform(y)
                 st.info(f' UWAGA !:    Typ zmiennej celu po kodowaniu: {y.dtype}')
+
+                 
                 y_df = pd.DataFrame(y)
-                st.write(y_df.value_counts(normalize=True) * 100,)
+
+                y_df.value_counts(normalize=True) * 100
                 
-                
-                
-    
+                st.subheader('ETAP 3. Podział danych na zbiór treningowy i testowy')
         
 
                 # Podział danych na zbiór treningowy i testowy
@@ -1004,6 +1037,9 @@ with st.container(border=True):
                 
             
                 
+                st.subheader('ETAP 4. Preprocesing danych:')
+                st.write('przekształcenie danych do wymagań modelu:' )
+                
                 
                 binary_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OneHotEncoder(sparse_output=False, handle_unknown='ignore',drop='if_binary',dtype='int'))
                 ordinal_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OrdinalEncoder(categories=[['podstawowe', 'zawodowe', 'średnie', 'wyższe'],
@@ -1015,15 +1051,12 @@ with st.container(border=True):
                 binarizer_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),Binarizer(threshold=20)) #>20min
                 kbins_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'), KBinsDiscretizer(n_bins=3, encode='ordinal', strategy='uniform'))
 
-
-
-
                 transformers = [
-                    ('binary', binary_pipeline, ['płeć', 'pali', 'problemy z rówieśnikami', 'typ szkoły', 'nadużywanie alkoholu', 'korzystanie z korepetycji']),
-                    ('ordinal', ordinal_pipeline, ['wykształcenie', 'zamieszkanie']),
-                    ('ohe', ohe_pipeline, ['tryb nauki']),
-                    ('ohe_rare', ohe_rare_pipeline, ['ulubione social media']),
-                    ('numerical', numeric_pipeline, ['srednia ocen sem'])]
+                    ('zmienne_binarne', binary_pipeline, ['płeć', 'pali', 'problemy z rówieśnikami', 'typ szkoły', 'nadużywanie alkoholu', 'korzystanie z korepetycji']),
+                    ('zmienne_porządkowe', ordinal_pipeline, ['wykształcenie', 'zamieszkanie']),
+                    ('zmienne_kat', ohe_pipeline, ['tryb nauki']),
+                    ('zmienne_kat_rare', ohe_rare_pipeline, ['ulubione social media']),
+                    ('zmienne numeryczne', numeric_pipeline, ['srednia ocen sem'])]
 
 
                 preprocessor = ColumnTransformer(
@@ -1034,9 +1067,41 @@ with st.container(border=True):
 
                 X_transformed = preprocessor.fit_transform(X_train)
                 X_transformed_rounded = pd.DataFrame(X_transformed).round(2)
+            
+                
+                st.write(transformers)
+                
+                
+                st.write('Dane po preprocesingu:')
                 st.dataframe(X_transformed_rounded.head())
                 
                 
+                
+                st.subheader('ETAP 5. Wybór modelu - algorytmu uczenia maszynowego:')
+                
+                st.markdown('**wybrany model uczenia maszynowego w celu dkonania klasyfikacji analizowanego zbioru danych:**')
+                st.write("DRZEWO DECYZYJNE")
+                st.write('')
+                st.write('Ustaw parametry modelu:')
+                
+               
+                    
+                
+                
+                
+                
+                
+                col1, col2 = st.columns([1,4])
+                with col1:
+                    rs = st.number_input('podaj wartośc ziarna losowości:' , min_value = 0 ,max_value = 99999999, value = 42)  
+                    criterion = st.selectbox('Funkcja pomiaru jakości podziału', ['gini', 'entropia', 'log_loss'])    
+                    max_depth=st.number_input('podaj maksymalną głębokość drzewa:' , min_value = 0 ,max_value = 10, value = 4, help='Maksymalna głębokość drzewa. Jeśli Brak, węzły są rozwijane, aż wszystkie liście będą czyste lub wszystkie liście będą zawierać próbki mniejsze niż min_samples_split.')
+                    min_samples_split=st.number_input('Minimalna liczba próbek wymagana do podziału węzła wewnętrznego drzewa:' , min_value = 1 ,max_value = 10, value = 6, )
+                    min_samples_leaf=st.number_input('Minimalna liczba próbek wymagana, aby znajdować się w węźle liścia drzewa:' , min_value = 1 ,max_value = 10, value = 2, )
+                    max_features=None
+                            
+                         
+
                 
                 #Definicja modelu drzewa decyzyjnego
                 
@@ -1044,27 +1109,195 @@ with st.container(border=True):
 
                 # Definicja modelu z dodatkowymi parametrami
                 model = DecisionTreeClassifier(
-                    random_state=42, 
-                    max_depth=4, 
-                    min_samples_split=3, 
-                    min_samples_leaf=1, 
+                    random_state= rs, 
+                    criterion = criterion,
+                    max_depth=max_depth,
+                    min_samples_split=min_samples_split,
+                    min_samples_leaf=min_samples_leaf,
                     max_features=None
                     )
-
+                st.write('Podsumowanie wartoci hiperparametrów:')
+                st.write(model.get_params())
                 
-                    # # Definiuj siatkę hiperparametrów do przeszukania dla Decision Tree
-                    # tree_param_grid = {
-                    #     'model__criterion': ['gini', 'entropy'],       # Kryterium podziału
-                    #     'model__max_depth': [2,3,4,5,6,7],        # Maksymalna głębokość drzewa
-                    #     'model__min_samples_split': [1,2,3,4,5,6],       # Minimalna liczba próbek do podziału węzła
-                    #     'model__min_samples_leaf': [1,2,3,4,5]          # Minimalna liczba próbek w liściu
-                    # }
+                st.write(model)
                 
+               
                             
                 pipe_DecisionTreeClassifier = Pipeline([
                 ('preprocessor', preprocessor),
                 ('model', model)])
+                
+                
                
+                st.write(pipe_DecisionTreeClassifier)
+                
+                #                 tree.plot_tree(clf)
+                    # plt.show()
+                
+                
+                
+                
+                st.write('przykładowe warości hiperparametrów ')
+                
+                
+                col1, col2, col3 = st.columns(3)
+
+                with col1:
+                    import numpy as np
+                    import matplotlib.pyplot as plt
+                    from sklearn.model_selection import validation_curve
+
+                    # Parametry do testowania # Parametry do testowania
+                    param_range = [1, 2, 3, 4, 5,6,7,8,9,10]  # Przykładowe wartości dla minimalnej liczby próbek w liściu
+
+                    # Tworzenie krzywej uczenia
+                    train_scores, test_scores = validation_curve(
+                        estimator=pipe_DecisionTreeClassifier,  # Model
+                        X=X_train,  # Dane treningowe
+                        y=y_train,  # Etykiety treningowe
+                        param_name='model__min_samples_leaf',  # Parametr, który chcemy testować
+                        param_range=param_range,  # Zakres testowanych wartości parametru
+                        cv=5  # Liczba podziałów walidacji krzyżowej
+                    )
+
+                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
+                    train_mean = np.mean(train_scores, axis=1)
+                    train_std = np.std(train_scores, axis=1)
+                    test_mean = np.mean(test_scores, axis=1)
+                    test_std = np.std(test_scores, axis=1)
+                    
+                
+                     #Tworzenie DataFrame z wynikami krzywej uczenia
+                    results_df = pd.DataFrame({
+                        'min_samples_leaf': param_range,
+                        'train_mean_score': train_mean,
+                        'test_mean_score': test_mean
+                    })
+
+                    # Wyświetlanie wyników
+                    #st.dataframe(results_df)
+                                        
+                with col1:   
+
+                    # Tworzenie wykresu
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
+                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
+
+                    plt.title('Krzywa uczenia')
+                    plt.xlabel('Minimalna liczba próbek w liściu')
+                    plt.ylabel('Wynik klasyfikacji')
+                    plt.grid()
+                    plt.legend(loc='lower right')
+                    plt.xticks(param_range)
+                    st.pyplot()
+                    
+                    
+                
+                    
+                with col2:
+
+                    # Parametry do testowania
+                    param_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # Przykładowe wartości dla maksymalnej głębokości drzewa
+
+                    # Tworzenie krzywej uczenia
+                    train_scores, test_scores = validation_curve(
+                        estimator=pipe_DecisionTreeClassifier,  # Model
+                        X=X_train,  # Dane treningowe
+                        y=y_train,  # Etykiety treningowe
+                        param_name='model__max_depth',  # Parametr, który chcemy testować (zmiana na max_depth)
+                        param_range=param_range,  # Zakres testowanych wartości parametru
+                        cv=5  # Liczba podziałów walidacji krzyżowej
+                    )
+
+                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
+                    train_mean = np.mean(train_scores, axis=1)
+                    train_std = np.std(train_scores, axis=1)
+                    test_mean = np.mean(test_scores, axis=1)
+                    test_std = np.std(test_scores, axis=1)
+
+                    # Tworzenie DataFrame z wynikami krzywej uczenia
+                    results_df = pd.DataFrame({
+                        'max_depth': param_range,  # Zmiana na max_depth
+                        'train_mean_score': train_mean,
+                        'test_mean_score': test_mean
+                    })
+
+                    # Wyświetlanie wyników
+                    #st.dataframe(results_df)
+
+                    # Tworzenie wykresu
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
+                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
+
+                    plt.title('Krzywa uczenia')
+                    plt.xlabel('Maksymalna głębokość drzewa')
+                    plt.ylabel('Wynik klasyfikacji')
+                    plt.grid()
+                    plt.legend(loc='lower right')
+                    plt.xticks(param_range)
+                    st.pyplot()
+
+                with col3:
+
+                    # Parametry do testowania
+                    param_range = [1, 2, 3, 4, 5, 6]  # Przykładowe wartości dla minimalnej liczby próbek do podziału węzła
+
+                    # Tworzenie krzywej uczenia
+                    train_scores, test_scores = validation_curve(
+                        estimator=pipe_DecisionTreeClassifier,  # Model
+                        X=X_train,  # Dane treningowe
+                        y=y_train,  # Etykiety treningowe
+                        param_name='model__min_samples_split',  # Parametr, który chcemy testować (zmiana na min_samples_split)
+                        param_range=param_range,  # Zakres testowanych wartości parametru
+                        cv=5  # Liczba podziałów walidacji krzyżowej
+                    )
+
+                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
+                    train_mean = np.mean(train_scores, axis=1)
+                    train_std = np.std(train_scores, axis=1)
+                    test_mean = np.mean(test_scores, axis=1)
+                    test_std = np.std(test_scores, axis=1)
+
+                    # Tworzenie DataFrame z wynikami krzywej uczenia
+                    results_df = pd.DataFrame({
+                        'min_samples_split': param_range,  # Zmiana na min_samples_split
+                        'train_mean_score': train_mean,
+                        'test_mean_score': test_mean
+                    })
+
+                    # Wyświetlanie wyników
+                    #st.dataframe(results_df)
+
+                    # Tworzenie wykresu
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
+                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
+
+                    plt.title('Krzywa uczenia')
+                    plt.xlabel('Minimalna liczba próbek do podziału węzła')
+                    plt.ylabel('Wynik klasyfikacji')
+                    plt.grid()
+                    plt.legend(loc='lower right')
+                    plt.xticks(param_range)
+                    st.pyplot()
+
+                
+                
+                    
+                    
+                    
+                
+                
+                
+                
                 
                 col1, col2, col3 = st.columns([1,1,1])
                 with col1:
@@ -1452,206 +1685,6 @@ with st.container(border=True):
 
 
 
-                    import numpy as np
-                    import matplotlib.pyplot as plt
-                    from sklearn.model_selection import validation_curve
-
-                    # Parametry do testowania # Parametry do testowania
-                    param_range = [1, 2, 3, 4, 5,6,7,8,9,10]  # Przykładowe wartości dla minimalnej liczby próbek w liściu
-
-                    # Tworzenie krzywej uczenia
-                    train_scores, test_scores = validation_curve(
-                        estimator=pipe_DecisionTreeClassifier,  # Model
-                        X=X_train,  # Dane treningowe
-                        y=y_train,  # Etykiety treningowe
-                        param_name='model__min_samples_leaf',  # Parametr, który chcemy testować
-                        param_range=param_range,  # Zakres testowanych wartości parametru
-                        cv=5  # Liczba podziałów walidacji krzyżowej
-                    )
-
-                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
-                    train_mean = np.mean(train_scores, axis=1)
-                    train_std = np.std(train_scores, axis=1)
-                    test_mean = np.mean(test_scores, axis=1)
-                    test_std = np.std(test_scores, axis=1)
-                    
-                    
-                    
-                     #Tworzenie DataFrame z wynikami krzywej uczenia
-                    results_df = pd.DataFrame({
-                        'min_samples_leaf': param_range,
-                        'train_mean_score': train_mean,
-                        'test_mean_score': test_mean
-                    })
-
-                    # Wyświetlanie wyników
-                    st.dataframe(results_df)
-                                        
-                    
-
-                    # Tworzenie wykresu
-                    plt.figure(figsize=(10, 6))
-                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
-                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
-                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
-                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
-
-                    plt.title('Krzywa uczenia')
-                    plt.xlabel('Minimalna liczba próbek w liściu')
-                    plt.ylabel('Wynik klasyfikacji')
-                    plt.grid()
-                    plt.legend(loc='lower right')
-                    plt.xticks(param_range)
-                    st.pyplot()
-                    param_range = [1, 2, 3, 4, 5,6,7,8,9,10]  # Przykładowe wartości dla minimalnej liczby próbek w liściu
-
-                    # Tworzenie krzywej uczenia
-                    train_scores, test_scores = validation_curve(
-                        estimator=pipe_DecisionTreeClassifier,  # Model
-                        X=X_train,  # Dane treningowe
-                        y=y_train,  # Etykiety treningowe
-                        param_name='model__min_samples_leaf',  # Parametr, który chcemy testować
-                        param_range=param_range,  # Zakres testowanych wartości parametru
-                        cv=5  # Liczba podziałów walidacji krzyżowej
-                    )
-
-                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
-                    train_mean = np.mean(train_scores, axis=1)
-                    train_std = np.std(train_scores, axis=1)
-                    test_mean = np.mean(test_scores, axis=1)
-                    test_std = np.std(test_scores, axis=1)
-                    
-                    
-                    
-                     #Tworzenie DataFrame z wynikami krzywej uczenia
-                    results_df = pd.DataFrame({
-                        'min_samples_leaf': param_range,
-                        'train_mean_score': train_mean,
-                        'test_mean_score': test_mean
-                    })
-
-                    # Wyświetlanie wyników
-                    st.dataframe(results_df)
-                                        
-                    
-
-                    # Tworzenie wykresu
-                    plt.figure(figsize=(10, 6))
-                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
-                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
-                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
-                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
-
-                    plt.title('Krzywa uczenia')
-                    plt.xlabel('Minimalna liczba próbek w liściu')
-                    plt.ylabel('Wynik klasyfikacji')
-                    plt.grid()
-                    plt.legend(loc='lower right')
-                    plt.xticks(param_range)
-                    st.pyplot()
-                    
-                    
-
-                    # Parametry do testowania
-                    param_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # Przykładowe wartości dla maksymalnej głębokości drzewa
-
-                    # Tworzenie krzywej uczenia
-                    train_scores, test_scores = validation_curve(
-                        estimator=pipe_DecisionTreeClassifier,  # Model
-                        X=X_train,  # Dane treningowe
-                        y=y_train,  # Etykiety treningowe
-                        param_name='model__max_depth',  # Parametr, który chcemy testować (zmiana na max_depth)
-                        param_range=param_range,  # Zakres testowanych wartości parametru
-                        cv=5  # Liczba podziałów walidacji krzyżowej
-                    )
-
-                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
-                    train_mean = np.mean(train_scores, axis=1)
-                    train_std = np.std(train_scores, axis=1)
-                    test_mean = np.mean(test_scores, axis=1)
-                    test_std = np.std(test_scores, axis=1)
-
-                    # Tworzenie DataFrame z wynikami krzywej uczenia
-                    results_df = pd.DataFrame({
-                        'max_depth': param_range,  # Zmiana na max_depth
-                        'train_mean_score': train_mean,
-                        'test_mean_score': test_mean
-                    })
-
-                    # Wyświetlanie wyników
-                    st.dataframe(results_df)
-
-                    # Tworzenie wykresu
-                    plt.figure(figsize=(10, 6))
-                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
-                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
-                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
-                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
-
-                    plt.title('Krzywa uczenia')
-                    plt.xlabel('Maksymalna głębokość drzewa')
-                    plt.ylabel('Wynik klasyfikacji')
-                    plt.grid()
-                    plt.legend(loc='lower right')
-                    plt.xticks(param_range)
-                    st.pyplot()
-
-
-
-                    # Parametry do testowania
-                    param_range = [1, 2, 3, 4, 5, 6]  # Przykładowe wartości dla minimalnej liczby próbek do podziału węzła
-
-                    # Tworzenie krzywej uczenia
-                    train_scores, test_scores = validation_curve(
-                        estimator=pipe_DecisionTreeClassifier,  # Model
-                        X=X_train,  # Dane treningowe
-                        y=y_train,  # Etykiety treningowe
-                        param_name='model__min_samples_split',  # Parametr, który chcemy testować (zmiana na min_samples_split)
-                        param_range=param_range,  # Zakres testowanych wartości parametru
-                        cv=5  # Liczba podziałów walidacji krzyżowej
-                    )
-
-                    # Obliczanie średnich i odchyleń standardowych wyników dla krzywej uczenia
-                    train_mean = np.mean(train_scores, axis=1)
-                    train_std = np.std(train_scores, axis=1)
-                    test_mean = np.mean(test_scores, axis=1)
-                    test_std = np.std(test_scores, axis=1)
-
-                    # Tworzenie DataFrame z wynikami krzywej uczenia
-                    results_df = pd.DataFrame({
-                        'min_samples_split': param_range,  # Zmiana na min_samples_split
-                        'train_mean_score': train_mean,
-                        'test_mean_score': test_mean
-                    })
-
-                    # Wyświetlanie wyników
-                    st.dataframe(results_df)
-
-                    # Tworzenie wykresu
-                    plt.figure(figsize=(10, 6))
-                    plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
-                    plt.fill_between(param_range, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
-                    plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
-                    plt.fill_between(param_range, test_mean + test_std, test_mean - test_std, alpha=0.15, color='green')
-
-                    plt.title('Krzywa uczenia')
-                    plt.xlabel('Minimalna liczba próbek do podziału węzła')
-                    plt.ylabel('Wynik klasyfikacji')
-                    plt.grid()
-                    plt.legend(loc='lower right')
-                    plt.xticks(param_range)
-                    st.pyplot()
-
-                   # Przykładowy nowy wiersz danych
-                    # new_data_point = [[5.1, 3.5, 1.4, 0.2]]  # Przykładowy wiersz danych dla kwiatu Iris
-
-                    # # Przewidywanie klasy dla nowego wiersza danych
-                    # predicted_class = model.predict(new_data_point)
-
-                    # # Wyświetlenie przewidywanej klasy dla nowego wiersza danych
-                    # print("Przewidziana klasa dla nowego wiersza danych:", iris.target_names[predicted_class[0]])
-
-                    # Tworzenie tablicy NumPy z pojedynczego wiersza danych
                     
                     
                     
@@ -1659,139 +1692,140 @@ with st.container(border=True):
                     import pandas as pd
 
     with tab7:
-        with st.container(border = True):
-                st.write('Wprowdź nowe dane do modelu:')
-                st.write('')
+        if wybrane_dane =='szkoła':
+            with st.container(border = True):
+                    st.write('Wprowdź nowe dane do modelu:')
+                    st.write('')
 
-                col1, col2, col3, col4  = st.columns(4, gap = 'large')
-                with col1:
-  
-                    # Płeć
-                    #st.write('# Płeć')
-                    selected_gender = st.selectbox('Wybierz płeć:', df['płeć'].unique())
+                    col1, col2, col3, col4  = st.columns(4, gap = 'large')
+                    with col1:
+    
+                        # Płeć
+                        #st.write('# Płeć')
+                        selected_gender = st.selectbox('Wybierz płeć:', df['płeć'].unique())
 
-                    # Pali
-                    #st.write('### Pali')
-                    selected_smoke = st.selectbox('Czy pali:', df['pali'].unique())
+                        # Pali
+                        #st.write('### Pali')
+                        selected_smoke = st.selectbox('Czy pali:', df['pali'].unique())
 
-                    # Wykształcenie
-                    #st.write('### Wykształcenie')
-                    selected_education = st.selectbox('Wybierz wykształcenie:', df['wykształcenie'].unique())
-                
-
-                    # Liczba osób
-                    #st.write('### Liczba osób')
-                    selected_persons = st.number_input('Podaj liczbę osób:', min_value=0)
-
-                    # Typ szkoły
-                    #st.write('### Typ szkoły')
-                    selected_school_type = st.selectbox('Wybierz typ szkoły:', df['typ szkoły'].unique())
-
-                with col2:
-                    # Dochód roczny
-                    #st.write('### Dochód roczny')
-                    selected_income = st.number_input('Podaj dochód roczny:', min_value=0)
-
-                    # Średnia ocen semestralna
-                    #st.write('### Średnia ocen semestralna')
-                    selected_grades = st.number_input('Podaj średnią ocen semestralną:', min_value=0.0, max_value=5.0, step=0.1)
-
-                    # Tryb nauki
-                    #st.write('### Tryb nauki')
-                    selected_study_mode = st.selectbox('Wybierz tryb nauki:', df['tryb nauki'].unique())
-
-                    # Zamieszkanie
-                    #st.write('### Zamieszkanie')
-                    selected_residence = st.selectbox('Wybierz miejsce zamieszkania:', df['zamieszkanie'].unique())
+                        # Wykształcenie
+                        #st.write('### Wykształcenie')
+                        selected_education = st.selectbox('Wybierz wykształcenie:', df['wykształcenie'].unique())
                     
-                with col3:
 
-                    # Problemy z rówieśnikami
-                    #st.write('### Problemy z rówieśnikami')
-                    selected_peer_problems = st.selectbox('Czy występują problemy z rówieśnikami:', df['problemy z rówieśnikami'].unique())
+                        # Liczba osób
+                        #st.write('### Liczba osób')
+                        selected_persons = st.number_input('Podaj liczbę osób:', min_value=0)
 
-        
-                    # Czas do szkoły (min)
-                    #st.write('### Czas do szkoły (min)')
-                    selected_time_to_school = st.number_input('Podaj czas do szkoły (min):', min_value=0)
+                        # Typ szkoły
+                        #st.write('### Typ szkoły')
+                        selected_school_type = st.selectbox('Wybierz typ szkoły:', df['typ szkoły'].unique())
 
-                    # Godziny nauki przed egzaminem
-                    #st.write('### Godziny nauki przed egzaminem')
-                    selected_study_hours = st.number_input('Podaj godziny nauki przed egzaminem:', min_value=0)
+                    with col2:
+                        # Dochód roczny
+                        #st.write('### Dochód roczny')
+                        selected_income = st.number_input('Podaj dochód roczny:', min_value=0)
 
-                    # Nadużywanie alkoholu
-                    #st.write('### Nadużywanie alkoholu')
-                    selected_alcohol_abuse = st.selectbox('Czy występuje nadużywanie alkoholu:', df['nadużywanie alkoholu'].unique())
+                        # Średnia ocen semestralna
+                        #st.write('### Średnia ocen semestralna')
+                        selected_grades = st.number_input('Podaj średnią ocen semestralną:', min_value=0.0, max_value=5.0, step=0.1)
 
-                with col4:
-                    # Poziom stresu
-                    #st.write('### Poziom stresu')
-                    selected_stress_level = st.number_input('Podaj poziom stresu:', min_value=0)
+                        # Tryb nauki
+                        #st.write('### Tryb nauki')
+                        selected_study_mode = st.selectbox('Wybierz tryb nauki:', df['tryb nauki'].unique())
 
-                    # Korzystanie z korepetycji
-                    #st.write('### Korzystanie z korepetycji')
-                    selected_tutoring = st.selectbox('Czy korzysta z korepetycji:', df['korzystanie z korepetycji'].unique())
-
-                    # Czas spędzany tygodniu na social mediach w godz
-                    #st.write('### Czas spędzany tygodniu na social mediach w godz')
-                    selected_social_media_time = st.number_input('Podaj czas spędzany na social mediach (godz):', min_value=0)
-
-                    # Ulubione social media
-                    #st.write('### Ulubione social media')
-                    selected_social_media = st.selectbox('Wybierz ulubione social media:', df['ulubione social media'].unique())
-                    
-                    
-                    
-                    # Utwórz nowy dataframe na podstawie wyborów użytkownika
-                    new_df = pd.DataFrame({
-                        'płeć': [selected_gender],
-                        'pali': [selected_smoke],
-                        'wykształcenie': [selected_education],
-                        'liczba osób': [selected_persons],
-                        'typ szkoły': [selected_school_type],
-                        'dochód roczny': [selected_income],
-                        'srednia ocen sem': [selected_grades],
-                        'tryb nauki': [selected_study_mode],
-                        'zamieszkanie': [selected_residence],
-                        'problemy z rówieśnikami': [selected_peer_problems],
-                        'czas do szkoły min': [selected_time_to_school],
-                        'godzin nauki przed egzaminem': [selected_study_hours],
-                        'nadużywanie alkoholu': [selected_alcohol_abuse],
-                        'poziom stresu': [selected_stress_level],
-                        'korzystanie z korepetycji': [selected_tutoring],
-                        'czas spedzany tygodniu na social mediach w godz': [selected_social_media_time],
-                        'ulubione social media': [selected_social_media]
-                    })
-
-
-                    
-                     
-        with st.container(border = True):
-                    st.write('Wynik klasyfikacji modelu:')
-                               
-                    st.write('Nowy dataframe:')
-                    st.write(new_df)
-                    
-                    go  = st.button('Klasyfikuj!')
-                    if go:
+                        # Zamieszkanie
+                        #st.write('### Zamieszkanie')
+                        selected_residence = st.selectbox('Wybierz miejsce zamieszkania:', df['zamieszkanie'].unique())
                         
-                        # Przewidywanie klasy dla nowego wiersza danych
-                        predicted_class = pipe_DecisionTreeClassifier.predict(new_df)
+                    with col3:
+
+                        # Problemy z rówieśnikami
+                        #st.write('### Problemy z rówieśnikami')
+                        selected_peer_problems = st.selectbox('Czy występują problemy z rówieśnikami:', df['problemy z rówieśnikami'].unique())
+
+            
+                        # Czas do szkoły (min)
+                        #st.write('### Czas do szkoły (min)')
+                        selected_time_to_school = st.number_input('Podaj czas do szkoły (min):', min_value=0)
+
+                        # Godziny nauki przed egzaminem
+                        #st.write('### Godziny nauki przed egzaminem')
+                        selected_study_hours = st.number_input('Podaj godziny nauki przed egzaminem:', min_value=0)
+
+                        # Nadużywanie alkoholu
+                        #st.write('### Nadużywanie alkoholu')
+                        selected_alcohol_abuse = st.selectbox('Czy występuje nadużywanie alkoholu:', df['nadużywanie alkoholu'].unique())
+
+                    with col4:
+                        # Poziom stresu
+                        #st.write('### Poziom stresu')
+                        selected_stress_level = st.number_input('Podaj poziom stresu:', min_value=0)
+
+                        # Korzystanie z korepetycji
+                        #st.write('### Korzystanie z korepetycji')
+                        selected_tutoring = st.selectbox('Czy korzysta z korepetycji:', df['korzystanie z korepetycji'].unique())
+
+                        # Czas spędzany tygodniu na social mediach w godz
+                        #st.write('### Czas spędzany tygodniu na social mediach w godz')
+                        selected_social_media_time = st.number_input('Podaj czas spędzany na social mediach (godz):', min_value=0)
+
+                        # Ulubione social media
+                        #st.write('### Ulubione social media')
+                        selected_social_media = st.selectbox('Wybierz ulubione social media:', df['ulubione social media'].unique())
+                        
+                        
+                        
+                        # Utwórz nowy dataframe na podstawie wyborów użytkownika
+                        new_df = pd.DataFrame({
+                            'płeć': [selected_gender],
+                            'pali': [selected_smoke],
+                            'wykształcenie': [selected_education],
+                            'liczba osób': [selected_persons],
+                            'typ szkoły': [selected_school_type],
+                            'dochód roczny': [selected_income],
+                            'srednia ocen sem': [selected_grades],
+                            'tryb nauki': [selected_study_mode],
+                            'zamieszkanie': [selected_residence],
+                            'problemy z rówieśnikami': [selected_peer_problems],
+                            'czas do szkoły min': [selected_time_to_school],
+                            'godzin nauki przed egzaminem': [selected_study_hours],
+                            'nadużywanie alkoholu': [selected_alcohol_abuse],
+                            'poziom stresu': [selected_stress_level],
+                            'korzystanie z korepetycji': [selected_tutoring],
+                            'czas spedzany tygodniu na social mediach w godz': [selected_social_media_time],
+                            'ulubione social media': [selected_social_media]
+                        })
+
+
+                        
+                        
+            with st.container(border = True):
                         st.write('Wynik klasyfikacji modelu:')
-                        st.write('')
-                        if predicted_class == 0:
-                            st.subheader('Nie zdał' )
-                        else:
-                            st.subheader('Zdał')
-                    else : pass
-                    
-                    # st.write('Przewidziana kategoria 0 - nie zda, 1- zda')
-                    # st.write(predicted_class)
+                                
+                        st.write('Nowy dataframe:')
+                        st.write(new_df)
+                        
+                        go  = st.button('Klasyfikuj!')
+                        if go:
+                            
+                            # Przewidywanie klasy dla nowego wiersza danych
+                            predicted_class = pipe_DecisionTreeClassifier.predict(new_df)
+                            st.write('Wynik klasyfikacji modelu:')
+                            st.write('')
+                            if predicted_class == 0:
+                                st.subheader('Nie zdał' )
+                            else:
+                                st.subheader('Zdał')
+                        else : pass
+                        
+                        # st.write('Przewidziana kategoria 0 - nie zda, 1- zda')
+                        # st.write(predicted_class)
 
 
-                    #ValueError: columns are missing: {'czas spedzany tygodniu na social mediach w godz', 'srednia ocen sem'}
+                        #ValueError: columns are missing: {'czas spedzany tygodniu na social mediach w godz', 'srednia ocen sem'}
 
-
+        else : pass
 
 
 
