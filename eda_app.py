@@ -161,7 +161,7 @@ with st.container(border=True):
                                     st.success(f"Pomyślnie załadowano plik danych: {uploaded_file.name}")
                             elif uploaded_file.name.endswith('.xlsx'):
                                     time.sleep(2)
-                                    st.session_state.df = pd.read_csv(uploaded_file)
+                                    st.session_state.df = pd.read_excel(uploaded_file)
                                     st.success(f"Pomyślnie załadowano plik danych: {uploaded_file.name}")
                             else:
                                 st.error("Nieobsługiwany format pliku. Proszę załadować plik CSV lub Excel.")
@@ -1497,10 +1497,10 @@ with st.container(border=True):
                             col2.pyplot()
 
 
-                            prog = st.slider('ustaw wielkosc progu:', min_value = 0.1, max_value= 1.0,value = 0.45, step = 0.05)
-
+    
+                            st.write('')
                             # Użyj wytrenowanego modelu na danych testowych przy ustalonym progu
-                            y_test_pred = (y_test_proba >= prog).astype(int)
+                            y_test_pred = (y_test_proba >= 0.45).astype(int)
 
                             def score_test():
                                 cm_test = confusion_matrix(y_test, y_test_pred)
@@ -1522,68 +1522,38 @@ with st.container(border=True):
                                 df = pd.DataFrame(data).set_index('miara')
                                 return df
 
-
-
-
-                            st.write('Wartości miar dla wybranego progu:')
+                            st.write('')
+                            st.write('Wartości miar dla wybranego progu: [0.45]')
                             st.dataframe(score_test().T)
                             
-                            col1, col2,col3= st.columns([1,1,1])
-                            cm_test = confusion_matrix(y_test_binary, y_test_pred)
-                            sns.set_style("whitegrid") 
-                            cmap = sns.color_palette("Blues") 
-
-                            sns.heatmap(cm_test, annot=True, fmt="d", cmap=cmap, cbar=False, linewidths=0.5, linecolor='gray')
-                            plt.xlabel('Predicted', fontsize=14)
-                            plt.ylabel('Actual', fontsize=14)
-                            plt.title('Confusion Matrix', fontsize=10)
-                            # plt.xticks(fontsize=12)
-                            # plt.yticks(fontsize=12)
-                            col1.pyplot()
-
-
-                            importances = model.feature_importances_
-                            st.write(importances)
-
-
-                        import streamlit as st
-                        import pandas as pd
-                        import matplotlib.pyplot as plt
-
-                        # # Przykładowe dane - zastąp je swoim modelem i danymi
-                        # importances = model.feature_importances_
-                        # feature_names = ['płeć', 'pali', 'wykształcenie', 'liczba osób', 'typ szkoły',
-                        #                 'dochód roczny', 'srednia ocen sem', 'tryb nauki', 'zamieszkanie',
-                        #                 'problemy z rówieśnikami', 'czas do szkoły min',
-                        #                 'godzin nauki przed egzaminem', 'nadużywanie alkoholu', 'poziom stresu',
-                        #                 'korzystanie z korepetycji', 'czas spedzany tygodniu na social mediach w godz',
-                        #                 'ulubione social media']
-
-                        # # Tworzenie DataFrame z nazwami cech i ich istotnością
-                        # feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
-
-                        # # Wyświetlanie istotności cech w tabeli
-                        # st.subheader('Istotność cech:')
-                        # st.write(feature_importance_df)
-
-                        # # Tworzenie wykresu istotności cech
-                        # plt.figure(figsize=(10, 6))
-                        # plt.barh(feature_importance_df['Feature'], feature_importance_df['Importance'], color='skyblue')
-                        # plt.xlabel('Istotność cechy')
-                        # plt.ylabel('Cecha')
-                        # plt.title('Istotność cech w modelu')
-                        # plt.gca().invert_yaxis()  # Odwrócenie osi Y dla czytelności
-                        # st.pyplot()
 
 
 
+                        st.write('ranking ważności cech')
 
-
+                        col1, col2 = st.columns([1,2])
+                        pipe_DecisionTreeClassifier.fit(X_train, y_train)
                         
-                        
-                        
-                        import streamlit as st
-                        import pandas as pd
+                        lista = X_transformed_rounded.columns.tolist()
+                        # Pobranie ważności cech
+                        importances = model.feature_importances_
+
+                        # Pobranie nazw cech
+                        feature_names = lista
+
+                        # Stworzenie DataFrame z nazwami cech i ich ważnościami
+                        feature_importances = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+
+                        # Posortowanie cech według ważności
+                        feature_importances = feature_importances.sort_values(by='Importance', ascending=False)
+
+                        # Wykres ważności cech
+                        plt.barh(feature_importances['Feature'], feature_importances['Importance'])
+                        plt.xlabel('Importance')
+                        plt.ylabel('Feature')
+                        plt.title('Feature Importance')
+                        col1.pyplot()
+
                     else: pass
 
 
