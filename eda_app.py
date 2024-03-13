@@ -61,7 +61,7 @@ with st.container(border=True):
 
    
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 , tab8 = st.tabs(["📈 O aplikacji", "⏏️ Załaduj dane","🔎 Podgląd danych", "🛠️ Ustaw parametry analizy",
-                                                        "📝 Raport z analizy - EDA", "🦾 ML- konfiguracja i trenowanie", "🎯  ML - testowanie na nowych nadych","📖 pomoc"])
+                                                        "📝 Raport z analizy - EDA", "🦾 ML- konfiguracja i trenowanie", "🎯  ML - testowanie na nowych danych","📖 pomoc"])
     st.write('')
     
     
@@ -956,404 +956,566 @@ with st.container(border=True):
 
             st.write("")
             st.subheader('W tej wersji aplikacji do analizy mozna wybrac jedynie dataset : "szkoła"')
-            if typ_ladowania == 'Dane demonstracyjne':
-                
-                if wybrane_dane =='szkoła':
-                    st.info(f"Wybrano dane demonstracyjne: {wybrane_dane}")
-                    df = st.session_state.df
-                    
-                    st.subheader('ETAP 1. Podstawowe informacje o danych: ')
-                    
-                    st.dataframe(ana.informacje_o_dataframe(st.session_state.df), height=height, hide_index=True, width=2200)
-                    
-                    st.subheader('ETAP 2. Podział zmiennych ')
-                    
-                    # Tworzenie DataFrame'a dla zmiennych objaśniających (X) i zmiennej docelowej (y)
-                    X = df.drop('czy zdał egzamin', axis=1)
-                    y = df['czy zdał egzamin'] 
-
-                    # Pobieranie nazw zmiennych X i nazwy zmiennej y
-                    nazwy_zmiennych_X = X.columns.tolist()
-                    nazwa_zmiennej_y = 'czy zdał egzamin'
-                    
-                    #tabela_x = pd.Series({'x': [nazwy_zmiennych_X]})
-                    #tabela_y = pd.DataFrame({'y': [[nazwa_zmiennej_y]]})  
-                    
-                    st.markdown('[X] - cechy objaśniające')                                 
-                    st.write(nazwy_zmiennych_X)
-                    st.markdown('w tym:') 
-                    
-                    
-                    
-                    numeric_variables = X.select_dtypes(include=['int64', 'float64'])
-                    numeric_variable_names = numeric_variables.columns.tolist()
-                    non_numeric_variables = X.select_dtypes(exclude=['int64', 'float64'])
-                    non_numeric_variable_names = non_numeric_variables.columns.tolist()
-                    
-                    col1, col2 = st.columns(2)
-                    col1.write('Zmienne numeryczne:')
-                    col1.write(numeric_variable_names)
-                    col2.write('Zmienne kategorialne:')
-                    col2.write(non_numeric_variable_names)
-                    
-                
-                    st.markdown(f'[Y] - cecha celu: {nazwa_zmiennej_y}')  
-                    
-                    st.info(f' UWAGA !:    Typ zmiennej celu: {y.dtype}, wartości zmiennej celu:  {y.unique()}')
-                    
-                    
-                        
-                    prop = { 'Struktura zmiennej celu  przez kodowaniem': y.value_counts(normalize=True) * 100,}
-                    st.dataframe(pd.DataFrame(prop))
-                    
-                    st.write('kodowanie zmiennej celu') 
-
-
-                    # Utwórz instancję LabelEncoder
-                    label_encoder = LabelEncoder()
-
-                    # Przekształć zmienną y
-                    y = label_encoder.fit_transform(y)
-                    st.info(f' UWAGA !:    Typ zmiennej celu po kodowaniu: {y.dtype}')
-
-                    
-                    y_df = pd.DataFrame(y)
-
-                    y_df.value_counts(normalize=True) * 100
-                    
-                    st.subheader('ETAP 3. Podział danych na zbiór treningowy i testowy')
             
-
-                    # Podział danych na zbiór treningowy i testowy
-                    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=42, test_size=0.2)
-
-
-                    shape_dict = {  "Dane": ["X", "y", "X_train", "y_train", "X_test", "y_test"],
-                                    "Rozmiar": [X.shape,y.shape,X_train.shape,y_train.shape,X_test.shape,y_test.shape,],}
-
-                    shape_df = pd.DataFrame(shape_dict)
-                    st.dataframe(shape_df)
-
-                    st.write(f'Struktura danych X_train: {(X_train.shape[0]/X.shape[0])*100}%')
-                    st.write(f'Struktura danych X_test: {(X_test.shape[0]/X.shape[0])*100}%')
-                    
-                
-                    
-                    st.subheader('ETAP 4. Preprocesing danych:')
-                    st.write('przekształcenie danych do wymagań modelu:' )
-                    
-                    
-                    binary_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OneHotEncoder(sparse_output=False, handle_unknown='ignore',drop='if_binary',dtype='int'))
-                    ordinal_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OrdinalEncoder(categories=[['podstawowe', 'zawodowe', 'średnie', 'wyższe'],
-                                                                                                                    ['wieś','małe miasteczko','miasto średnie', 
-                                                                                                                        'miasto duże' , 'miasto pow. 500 tys.']],dtype='int')) 
-                    ohe_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OneHotEncoder(sparse_output=False,handle_unknown='ignore'),)    
-                    ohe_rare_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OneHotEncoder(sparse_output=False,handle_unknown='infrequent_if_exist', max_categories=5, dtype='int'))    
-                    numeric_pipeline = make_pipeline(StandardScaler())  
-                    binarizer_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),Binarizer(threshold=20)) #>20min
-                    kbins_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'), KBinsDiscretizer(n_bins=3, encode='ordinal', strategy='uniform'))
-
-                    transformers = [
-                        ('zmienne_binarne', binary_pipeline, ['płeć', 'pali', 'problemy z rówieśnikami', 'typ szkoły', 'nadużywanie alkoholu', 'korzystanie z korepetycji']),
-                        ('zmienne_porządkowe', ordinal_pipeline, ['wykształcenie', 'zamieszkanie']),
-                        ('zmienne_kat', ohe_pipeline, ['tryb nauki']),
-                        ('zmienne_kat_rare', ohe_rare_pipeline, ['ulubione social media']),
-                        ('zmienne numeryczne', numeric_pipeline, ['srednia ocen sem'])]
-
-
-                    preprocessor = ColumnTransformer(
-                        transformers=transformers,
-                        verbose_feature_names_out=False,
-                        remainder='passthrough')
-
-
-                    X_transformed = preprocessor.fit_transform(X_train)
-                    X_transformed_rounded = pd.DataFrame(X_transformed).round(2)
-                
-                    
-                    st.write(transformers)
-                    
-                    
-                    st.write('Dane po preprocesingu:')
-                    st.dataframe(X_transformed_rounded.head())
-                    
-                    
-                    
-                    st.subheader('ETAP 5. Wybór modelu - algorytmu uczenia maszynowego:')
-                    
-                    st.markdown('**wybrany model uczenia maszynowego w celu dkonania klasyfikacji analizowanego zbioru danych:**')
-                    st.write("Zespół lasów losowych (RandomForestClassifier)")
-                    st.write('')
-                    st.write('Ustaw parametry modelu:')
-                    st.write('Konfiguracja hiperparametrów dla: RandomForestClassifier')
-                
+            @st.cache_data
+            def load_data():
+                dane_ml = pd.read_excel('szkoła.xlsx')
+                return dane_ml
             
-                                    
-                    from sklearn.tree import DecisionTreeClassifier
-                    from sklearn.ensemble import RandomForestClassifier
-                    
-                    
+            df = load_data()
         
-                    col1, col2, col3 = st.columns([1,1,1], gap = 'large')
+           
+    
+            st.subheader('ETAP 1. Podstawowe informacje o danych: ')
+            st.write('Tabela danych:')
+            
+            st.dataframe(df,hide_index=True, width=2200)
+            st.write()
+            st.write('Informacje o danych:')
+            st.dataframe(ana.informacje_o_dataframe(df), height=height, hide_index=True, width=2200)
+            
+            st.subheader('ETAP 2. Podział zmiennych ')
+            
+            # Tworzenie DataFrame'a dla zmiennych objaśniających (X) i zmiennej docelowej (y)
+            X = df.drop('czy zdał egzamin', axis=1)
+            y = df['czy zdał egzamin'] 
+
+            # Pobieranie nazw zmiennych X i nazwy zmiennej y
+            nazwy_zmiennych_X = X.columns.tolist()
+            nazwa_zmiennej_y = 'czy zdał egzamin'
+            
+            #tabela_x = pd.Series({'x': [nazwy_zmiennych_X]})
+            #tabela_y = pd.DataFrame({'y': [[nazwa_zmiennej_y]]})  
+            
+            st.markdown(f'[X] - cechy objaśniające: {nazwy_zmiennych_X}')  
+            st.markdown(f'[Y] - cecha celu: {nazwa_zmiennej_y}')  
+            
+            
+            
+            
+            numeric_variables = X.select_dtypes(include=['int64', 'float64'])
+            numeric_variable_names = numeric_variables.columns.tolist()
+            non_numeric_variables = X.select_dtypes(exclude=['int64', 'float64'])
+            non_numeric_variable_names = non_numeric_variables.columns.tolist()
+            
+            with st.expander("podział cech objaśniających: [X]"):
+                col1, col2 = st.columns(2)
+                col1.write('Zmienne numeryczne:')
+                col1.write(numeric_variable_names)
+                col2.write('Zmienne kategorialne:')
+                col2.write(non_numeric_variable_names)
+            
+        
+            
+            
+            st.info(f' UWAGA !:    Typ zmiennej celu: {y.dtype}, wartości zmiennej celu:  {y.unique()}')
+            
+            
+                
+            prop = { 'Struktura zmiennej celu  przez kodowaniem': y.value_counts(normalize=True) * 100,}
+            st.dataframe(pd.DataFrame(prop))
+            
+            st.write('kodowanie zmiennej celu') 
+
+
+            # Utwórz instancję LabelEncoder
+            label_encoder = LabelEncoder()
+
+            # Przekształć zmienną y
+            y = label_encoder.fit_transform(y)
+            st.info(f' UWAGA !:    Typ zmiennej celu po kodowaniu: {y.dtype}')
+
+            
+            y_df = pd.DataFrame(y)
+
+            y_df.value_counts(normalize=True) * 100
+            
+            st.subheader('ETAP 3. Podział danych na zbiór treningowy i testowy')
+
+
+            from sklearn.model_selection import train_test_split
+
+
+            @st.cache_data
+            def podziel_dane(X, y, test_size=0.2, random_state=42):
+                X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=random_state, test_size=test_size)
+                return X_train, X_test, y_train, y_test
+
+        
+            X_train, X_test, y_train, y_test = podziel_dane(X, y)
+
+
+
+            shape_dict = {  "Dane": ["X", "y", "X_train", "y_train", "X_test", "y_test"],
+                            "Rozmiar": [X.shape,y.shape,X_train.shape,y_train.shape,X_test.shape,y_test.shape,],}
+
+            shape_df = pd.DataFrame(shape_dict)
+            st.dataframe(shape_df)
+
+            st.write(f'Struktura danych X_train: {(X_train.shape[0]/X.shape[0])*100}%')
+            st.write(f'Struktura danych X_test: {(X_test.shape[0]/X.shape[0])*100}%')
+            
+        
+            
+            st.subheader('ETAP 4. Preprocesing danych:')
+            st.write('przekształcenie danych do wymagań modelu:' )
+            
+            
+            binary_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OneHotEncoder(sparse_output=False, handle_unknown='ignore',drop='if_binary',dtype='int'))
+            ordinal_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OrdinalEncoder(categories=[['podstawowe', 'zawodowe', 'średnie', 'wyższe'],
+                                                                                                            ['wieś','małe miasteczko','miasto średnie', 
+                                                                                                                'miasto duże' , 'miasto pow. 500 tys.']],dtype='int')) 
+            ohe_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OneHotEncoder(sparse_output=False,handle_unknown='ignore'),)    
+            ohe_rare_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),OneHotEncoder(sparse_output=False,handle_unknown='infrequent_if_exist', max_categories=5, dtype='int'))    
+            numeric_pipeline = make_pipeline(StandardScaler())  
+            binarizer_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'),Binarizer(threshold=20)) #>20min
+            kbins_pipeline = make_pipeline(SimpleImputer(strategy='most_frequent'), KBinsDiscretizer(n_bins=3, encode='ordinal', strategy='uniform'))
+
+            transformers = [
+                ('zmienne_binarne', binary_pipeline, ['płeć', 'pali', 'problemy z rówieśnikami', 'typ szkoły', 'nadużywanie alkoholu', 'korzystanie z korepetycji']),
+                ('zmienne_porządkowe', ordinal_pipeline, ['wykształcenie', 'zamieszkanie']),
+                ('zmienne_kat', ohe_pipeline, ['tryb nauki']),
+                ('zmienne_kat_rare', ohe_rare_pipeline, ['ulubione social media']),
+                ('zmienne numeryczne', numeric_pipeline, ['srednia ocen sem'])]
+
+
+            preprocessor = ColumnTransformer(
+                transformers=transformers,
+                verbose_feature_names_out=False,
+                remainder='passthrough')
+
+
+            X_transformed = preprocessor.fit_transform(X_train)
+            X_transformed_rounded = pd.DataFrame(X_transformed).round(2)
+        
+            with st.expander("zobacz kroki Pipeline w preprocesingu:"):
+                st.write(transformers)
+            
+            
+            with st.expander("zobacz dane po preprocesingu:"):
+                st.dataframe(X_transformed_rounded.head())
+            
+            
+            
+            st.subheader('ETAP 5. Wybór modelu - algorytmu uczenia maszynowego:')
+            from sklearn.tree import DecisionTreeClassifier
+            from sklearn.ensemble import RandomForestClassifier      
+            
+            st.markdown('**wybrany model uczenia maszynowego w celu dkonania klasyfikacji analizowanego zbioru danych:**')
+            st.write("Zespół lasów losowych (RandomForestClassifier)")
+            st.write('')
+            
+            with st.expander("Ustaw parametry modelu:"):
+                st.write('Konfiguracja hiperparametrów dla: RandomForestClassifier')
+
+                col1, col2, col3 = st.columns([1,1,1], gap = 'large')
+                
+                with col1:
+                    n_estimators = st.slider('Liczba drzew (n_estimators)', 1, 1000, 800)
+                    criterion = st.selectbox('Kryterium podziału ', ['gini', 'entropy'])
+                    max_depth = st.slider('Maksymalna głębokość drzewa (max_depth)', 1, 20, 7)
+
+                with col2:
+                    min_samples_split = st.slider('Minimalna liczba próbek do podziału (min_samples_split)', 2, 20, 2)
+                    min_samples_leaf = st.slider('Minimalna liczba próbek w liściu (min_samples_leaf)', 1, 20, 1)
+                    max_features = st.selectbox('Metoda obliczania maksymalnej liczby cech (max_features)', ['sqrt', 'log2', 'auto', None])
+                
+                with col3:
+                    # Wyświetlenie wybranych hiperparametrów
+                    st.subheader('Wybrane hiperparametry:')
+                    st.write('Liczba drzew:', n_estimators)
+                    st.write('Kryterium podziału:', criterion)
+                    st.write('Maksymalna głębokość drzewa:', max_depth)
+                    st.write('Minimalna liczba próbek do podziału:', min_samples_split)
+                    st.write('Minimalna liczba próbek w liściu:', min_samples_leaf)
+                    st.write('Metoda obliczania maksymalnej liczby cech:', max_features)
+
+            
+            model = RandomForestClassifier(n_estimators=n_estimators, criterion=criterion, max_depth=max_depth,
+                                            min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf,
+                
+                                            max_features=max_features)
+
+                        
+            pipe_DecisionTreeClassifier = Pipeline([
+            ('preprocessor', preprocessor),
+            ('model', model)])
+
+            from sklearn.model_selection import validation_curve
+            
+            # if st.button ('Pokaż krzywe walidacji (validation_curve ) w zależności od ustawień hiperparametrów '):
+            #     st.write('Wartości skuteczności modelu  w zależności od ustawień hiperparametrów ')
+            
+            
+            #     col1, col2, col3 = st.columns(3)
+
+            #     with col1:
+            #         #Przykładowe wartości dla maksymalnej głębokości drzewa
+            #         param_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  
+            #         train_scores, test_scores = validation_curve(estimator=pipe_DecisionTreeClassifier,  X=X_train,  y=y_train, param_name='model__max_depth', param_range=param_range, cv=5)
+            #         train_mean = np.mean(train_scores, axis=1)
+            #         train_std = np.std(train_scores, axis=1)
+            #         test_mean = np.mean(test_scores, axis=1)
+            #         test_std = np.std(test_scores, axis=1)
+            #         results_df = pd.DataFrame({
+            #             'max_depth': param_range,  
+            #             'train_mean_score': train_mean,
+            #             'test_mean_score': test_mean})
+            #         #st.dataframe(results_df)
+
+            #         plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+            #         plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+            #         plt.title('Krzywa uczenia')
+            #         plt.xlabel('Max_depth  (Maksymalna głębokość drzewa)')
+            #         plt.ylabel('Wynik klasyfikacji')
+            #         plt.grid()
+            #         plt.legend(loc='lower right')
+            #         plt.xticks(param_range)
+            #         st.pyplot()
+
+            #     with col2:
+
+            #         param_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] 
+            #         train_scores, test_scores = validation_curve(estimator=pipe_DecisionTreeClassifier,  X=X_train,  y=y_train, param_name='model__min_samples_leaf', param_range=param_range, cv=5)
+            #         train_mean = np.mean(train_scores, axis=1)
+            #         train_std = np.std(train_scores, axis=1)
+            #         test_mean = np.mean(test_scores, axis=1)
+            #         test_std = np.std(test_scores, axis=1)
+            #         results_df = pd.DataFrame({
+            #             'max_depth': param_range,  
+            #             'train_mean_score': train_mean,
+            #             'test_mean_score': test_mean})
+            #         #st.dataframe(results_df)
+
+            #         plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+            #         plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+            #         plt.title('Krzywa uczenia')
+            #         plt.xlabel('min_samples_leaf  (Minimalna liczba próbek w liściu)')
+            #         plt.ylabel('Wynik klasyfikacji')
+            #         plt.grid()
+            #         plt.legend(loc='lower right')
+            #         plt.xticks(param_range)
+            #         st.pyplot()
+
+
+            #     with col3:
+            #         param_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14]  
+            #         train_scores, test_scores = validation_curve(estimator=pipe_DecisionTreeClassifier,  X=X_train,  y=y_train, param_name='model__min_samples_split', param_range=param_range, cv=5)
+            #         train_mean = np.mean(train_scores, axis=1)
+            #         train_std = np.std(train_scores, axis=1)
+            #         test_mean = np.mean(test_scores, axis=1)
+            #         test_std = np.std(test_scores, axis=1)
+            #         results_df = pd.DataFrame({
+            #             'max_depth': param_range,  
+            #             'train_mean_score': train_mean,
+            #             'test_mean_score': test_mean})
+            #         #st.dataframe(results_df)
+
+            #         plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
+            #         plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
+            #         plt.title('Krzywa uczenia')
+            #         plt.xlabel('min_samples_split (Minimalna liczba próbek do podziału węzła)')
+            #         plt.ylabel('Wynik klasyfikacji')
+            #         plt.grid()
+            #         plt.legend(loc='lower right')
+            #         plt.xticks(param_range)
+            #         st.pyplot()
                     
+            # else: pass       
+                    
+                
+            
+    
+            st.divider()
+            if st.button('TRENUJ, TESTUJ I OCENIAJ MODEL KLASYFIKACJI  ----  RandomForest ----'):
+                with st.spinner('Czekaj - trwa trenowanie modelu ... może to potrwać około 1-2 min⏳'):
+                    time.sleep(10)
+                    st.success('')
+                    st.divider()
+                    
+                    st.subheader('ETAP 6. Ocena modelu za pomocą walidacji krzyżowej:')
+                            
+                    col1, col2, col3= st.columns([1,1,1])
                     with col1:
-                        n_estimators = st.slider('Liczba drzew (n_estimators)', 1, 1000, 800)
-                        criterion = st.selectbox('Kryterium podziału ', ['gini', 'entropy'])
-                        max_depth = st.slider('Maksymalna głębokość drzewa (max_depth)', 1, 20, 7)
+                        cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+                        # Ocena modelu za pomocą walidacji krzyżowej
+                        wyniki = cross_validate(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv, scoring = {'accuracy': 'accuracy','f1': 'f1'},  return_train_score=True)
+                        score_train = pd.DataFrame(wyniki)
+                        st.write('Wyniki skuteczności modelu wg CV:')
+                        st.dataframe(score_train)
 
                     with col2:
-                        min_samples_split = st.slider('Minimalna liczba próbek do podziału (min_samples_split)', 2, 20, 2)
-                        min_samples_leaf = st.slider('Minimalna liczba próbek w liściu (min_samples_leaf)', 1, 20, 1)
-                        max_features = st.selectbox('Metoda obliczania maksymalnej liczby cech (max_features)', ['sqrt', 'log2', 'auto', None])
-                    
+                        
+                        train_scores = wyniki['train_accuracy']
+                        test_scores = wyniki['test_accuracy']
+                        fold_indices = np.arange(1, len(train_scores) + 1)
+                        plt.plot(fold_indices, train_scores, marker='o', label='Train Accuracy', color='blue')
+                        plt.plot(fold_indices, test_scores, marker='o', label='Test Accuracy', color='orange')
+                        plt.xlabel('Fold Index')
+                        plt.ylabel('Accuracy')
+                        plt.title('Skuteczność modelu wg nr foldów CV:')
+                        plt.legend()
+                        plt.grid(True)
+                        st.pyplot()
+                        
                     with col3:
-                        # Wyświetlenie wybranych hiperparametrów
-                        st.subheader('Wybrane hiperparametry:')
-                        st.write('Liczba drzew:', n_estimators)
-                        st.write('Kryterium podziału:', criterion)
-                        st.write('Maksymalna głębokość drzewa:', max_depth)
-                        st.write('Minimalna liczba próbek do podziału:', min_samples_split)
-                        st.write('Minimalna liczba próbek w liściu:', min_samples_leaf)
-                        st.write('Metoda obliczania maksymalnej liczby cech:', max_features)
-
-                    
-                    model = RandomForestClassifier(n_estimators=n_estimators, criterion=criterion, max_depth=max_depth,
-                                                    min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf,
+                        st.write('Wartości średnie pomiarów:')
+                        srednia_test = round(wyniki['test_accuracy'].mean(), 3)
+                        std_test = round(wyniki['test_accuracy'].std(), 3)
+                        srednia_train = round(wyniki['train_accuracy'].mean(), 3)
+                        std_train = round(wyniki['train_accuracy'].std(), 3)
                         
-                                                    max_features=max_features)
-        
-                                
-                    pipe_DecisionTreeClassifier = Pipeline([
-                    ('preprocessor', preprocessor),
-                    ('model', model)])
+                        srednia_test_f = round(wyniki['test_f1'].mean(), 3)
+                        std_test_f  = round(wyniki['test_f1'].std(), 3)
+                        srednia_train_f  = round(wyniki['train_f1'].mean(), 3)
+                        std_train_f  = round(wyniki['train_f1'].std(), 3)             
+                        dat = {
+                            'Metric': ['Accuracy', 'Accuracy', 'F1 Score', 'F1 Score'],
+                                'Dataset': ['Test', 'Train', 'Test', 'Train'],
+                                'Mean': [srednia_test, srednia_train, srednia_test_f, srednia_train_f],
+                                'Standard Deviation': [std_test, std_train, std_test_f, std_train_f] }
 
-                    from sklearn.model_selection import validation_curve
+                        srednie_wyniki_cv = pd.DataFrame(dat)
+                        st.dataframe(srednie_wyniki_cv)                    
+                        
+                        
+                        
+                    # with st.expander('Wykreśl krzywą uczenia'):
+                    #     col1, col2,col3= st.columns([1,1,1])
                     
-                    if st.button ('Pokaż krzywe walidacji (validation_curve ) w zależności od ustawień hiperparametrów '):
-                        st.write('Wartości skuteczności modelu  w zależności od ustawień hiperparametrów ')
+                    #     # Tworzymy krzywą uczenia
+                    #     train_sizes, train_scores, test_scores = learning_curve(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv, scoring='accuracy', train_sizes=np.linspace(0.1, 1.0, 10))
+                    #     train_mean = np.mean(train_scores, axis=1)
+                    #     train_std = np.std(train_scores, axis=1)
+                    #     test_mean = np.mean(test_scores, axis=1)
+                    #     test_std = np.std(test_scores, axis=1)
+                    #     plt.plot(train_sizes, train_mean, marker='o', color='blue', label='Training accuracy')
+                    #     plt.fill_between(train_sizes, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
+                    #     plt.plot(train_sizes, test_mean, marker='o', color='orange', label='Test accuracy')
+                    #     plt.fill_between(train_sizes, test_mean + test_std, test_mean - test_std, alpha=0.15, color='orange')
+                    #     plt.title('Learning Curve')
+                    #     plt.xlabel('Number of training examples')
+                    #     plt.ylabel('Accuracy')
+                    #     plt.legend()
+                    #     col1.pyplot()
                     
-                    
-                        col1, col2, col3 = st.columns(3)
+                        
 
+                    
+                    st.subheader('ETAP 7.  TRENOWANIE MODELU - RandomForestClassifier -  PREDYKCJA NA ZBIORZE TRENINGOWYM ')
+
+                    
+                    with st.container(border = True):
+                    
+                    
+                        st.write('')
+                        col1, col2= st.columns([2,1])
+                        
                         with col1:
-                            #Przykładowe wartości dla maksymalnej głębokości drzewa
-                            param_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  
-                            train_scores, test_scores = validation_curve(estimator=pipe_DecisionTreeClassifier,  X=X_train,  y=y_train, param_name='model__max_depth', param_range=param_range, cv=5)
-                            train_mean = np.mean(train_scores, axis=1)
-                            train_std = np.std(train_scores, axis=1)
-                            test_mean = np.mean(test_scores, axis=1)
-                            test_std = np.std(test_scores, axis=1)
-                            results_df = pd.DataFrame({
-                                'max_depth': param_range,  
-                                'train_mean_score': train_mean,
-                                'test_mean_score': test_mean})
-                            #st.dataframe(results_df)
-
-                            plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
-                            plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
-                            plt.title('Krzywa uczenia')
-                            plt.xlabel('Max_depth  (Maksymalna głębokość drzewa)')
-                            plt.ylabel('Wynik klasyfikacji')
-                            plt.grid()
-                            plt.legend(loc='lower right')
-                            plt.xticks(param_range)
-                            st.pyplot()
-
-                        with col2:
-
-                            param_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] 
-                            train_scores, test_scores = validation_curve(estimator=pipe_DecisionTreeClassifier,  X=X_train,  y=y_train, param_name='model__min_samples_leaf', param_range=param_range, cv=5)
-                            train_mean = np.mean(train_scores, axis=1)
-                            train_std = np.std(train_scores, axis=1)
-                            test_mean = np.mean(test_scores, axis=1)
-                            test_std = np.std(test_scores, axis=1)
-                            results_df = pd.DataFrame({
-                                'max_depth': param_range,  
-                                'train_mean_score': train_mean,
-                                'test_mean_score': test_mean})
-                            #st.dataframe(results_df)
-
-                            plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
-                            plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
-                            plt.title('Krzywa uczenia')
-                            plt.xlabel('min_samples_leaf  (Minimalna liczba próbek w liściu)')
-                            plt.ylabel('Wynik klasyfikacji')
-                            plt.grid()
-                            plt.legend(loc='lower right')
-                            plt.xticks(param_range)
-                            st.pyplot()
-
-
-                        with col3:
-                            param_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14]  
-                            train_scores, test_scores = validation_curve(estimator=pipe_DecisionTreeClassifier,  X=X_train,  y=y_train, param_name='model__min_samples_split', param_range=param_range, cv=5)
-                            train_mean = np.mean(train_scores, axis=1)
-                            train_std = np.std(train_scores, axis=1)
-                            test_mean = np.mean(test_scores, axis=1)
-                            test_std = np.std(test_scores, axis=1)
-                            results_df = pd.DataFrame({
-                                'max_depth': param_range,  
-                                'train_mean_score': train_mean,
-                                'test_mean_score': test_mean})
-                            #st.dataframe(results_df)
-
-                            plt.plot(param_range, train_mean, color='blue', marker='o', markersize=5, label='Wyniki treningowe')
-                            plt.plot(param_range, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Wyniki testowe')
-                            plt.title('Krzywa uczenia')
-                            plt.xlabel('min_samples_split (Minimalna liczba próbek do podziału węzła)')
-                            plt.ylabel('Wynik klasyfikacji')
-                            plt.grid()
-                            plt.legend(loc='lower right')
-                            plt.xticks(param_range)
-                            st.pyplot()
                             
-                    else: pass       
-                            
-                        
-                    
-                    
-                    if st.button('TRENUJ, TESTUJ I OCENIAJ MODEL KLASYFIKACJI  ----  RandomForest ----'):
-                        
-                        st.subheader('ETAP 6. Ocena modelu za pomocą walidacji krzyżowej:')
-                                
-                        col1, col2, col3= st.columns([1,1,1])
-                        with col1:
                             cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
-                            # Ocena modelu za pomocą walidacji krzyżowej
-                            wyniki = cross_validate(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv, scoring = {'accuracy': 'accuracy','f1': 'f1'},  return_train_score=True)
-                            score_train = pd.DataFrame(wyniki)
-                            st.write('Wyniki skuteczności modelu wg CV:')
-                            st.dataframe(score_train)
+                                    
+                            # Trenowanie modelu na całym zbiorze treningowym (opcjonalnie)
+                            pipe_DecisionTreeClassifier.fit(X_train, y_train)
+
+                            # Testowanie modelu na zbiorze testowym
+                            y_pred = pipe_DecisionTreeClassifier.predict(X_test)
+                            
+                            y_train_pred = cross_val_predict(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv)
+
+
+                            def score_train():
+                                    cm_test = confusion_matrix(y_train, y_train_pred)
+                                    TP, FP, FN, TN = cm_test.ravel()
+                                    accuracy = (TP + TN) / (TP + TN + FP + FN)
+                                    error_ratio = (FP + FN) / (TP + TN + FP + FN)
+                                    precision_pos = TP / (TP + FP)
+                                    precision_neg = TN / (TN + FN)
+                                    recall_pos = TP / (TP + FN)
+                                    recall_neg = TN / (TN + FP)
+                                    f1_score = 2 * (precision_pos * recall_pos) / (precision_pos + recall_pos)
+                                    data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score'],
+                                            'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score]}
+                                    df = pd.DataFrame(data).set_index('miara')
+                                    return df
+
+                            st.dataframe(score_train().T)
 
                         with col2:
-                            
-                            train_scores = wyniki['train_accuracy']
-                            test_scores = wyniki['test_accuracy']
-                            fold_indices = np.arange(1, len(train_scores) + 1)
-                            plt.plot(fold_indices, train_scores, marker='o', label='Train Accuracy', color='blue')
-                            plt.plot(fold_indices, test_scores, marker='o', label='Test Accuracy', color='orange')
-                            plt.xlabel('Fold Index')
-                            plt.ylabel('Accuracy')
-                            plt.title('Skuteczność modelu wg nr foldów CV:')
-                            plt.legend()
+
+                            # Tworzymy wykres macierzy pomyłek
+                            cm_train = confusion_matrix(y_train, y_train_pred)
+                            classes = ['Klasa Negatywna', 'Klasa Pozytywna']  # Zdefiniuj nazwy klas
+                            disp = ConfusionMatrixDisplay(confusion_matrix=cm_train, display_labels=classes)
+                            disp.plot(cmap=plt.cm.Blues, values_format=".2f")
+                            plt.title("Macierz Pomyłek")
+                            plt.xlabel("Przewidziane etykiety")
+                            plt.ylabel("Rzeczywiste etykiety")
+                            st.pyplot()
+            
+            
+            
+        
+
+                    st.subheader('ETAP 8.  OCENA MODELU  - RandomForestClassifier -  PREDYKCJA NA ZBIORZE TESTOWYM ')
+                    st.write('')
+                    
+        
+                    
+                    pipe_DecisionTreeClassifier.fit(X_train, y_train)
+                    # Predykcja na danych testowych
+                    y_test_pred = pipe_DecisionTreeClassifier.predict(X_test)
+
+                    # Prawdopodobieństwo przynależności do klasy pozytywnej (klasa 1) dla danych testowych
+                    y_test_proba = pipe_DecisionTreeClassifier.predict_proba(X_test)[:, 1]
+
+
+                    def score_test():
+                        cm_test = confusion_matrix(y_test, y_test_pred)
+                        TP, FP, FN, TN = cm_test.ravel()
+                        accuracy = (TP + TN) / (TP + TN + FP + FN)
+                        error_ratio = (FP + FN) / (TP + TN + FP + FN)
+                        precision_pos = TP / (TP + FP)
+                        precision_neg = TN / (TN + FN)
+                        recall_pos = TP / (TP + FN)
+                        recall_neg = TN / (TN + FP)
+                        f1_score = 2 * (precision_pos * recall_pos) / (precision_pos + recall_pos)
+                        roc_auc_test = roc_auc_score(y_test, y_test_proba)
+                        cohen_kappa = cohen_kappa_score(y_test, y_test_pred)
+                        matthews_corrcoef_score = matthews_corrcoef(y_test, y_test_pred)
+                        data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score',
+                                                'roc_auc_test','cohen_kappa','matthews_corrcoef_score'],
+                                        'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score,
+                                                    roc_auc_test,cohen_kappa,matthews_corrcoef_score]}
+                        df = pd.DataFrame(data).set_index('miara')
+                        return df
+
+            
+                    st.dataframe(score_test().T)
+                    
+                    col1, col2, col3  =st.columns([1,1,1])  
+                    
+                    with col1:    
+            
+                            cm_test = confusion_matrix(y_test, y_test_pred)
+                            classes = ['nie zdał', 'zdał']  
+                            disp = ConfusionMatrixDisplay(confusion_matrix=cm_test, display_labels=classes)
+                            disp.plot(cmap=plt.cm.Blues, values_format=".2f")
+                            plt.title("Macierz Pomyłek")
+                            plt.xlabel("Przewidziane etykiety")
+                            plt.ylabel("Rzeczywiste etykiety")
+                            st.pyplot()
+
+                    with col2:
+
+                            # Oblicz krzywą ROC i pole pod krzywą ROC (AUC-ROC)
+                            fpr, tpr, thresholds = roc_curve(y_test, y_test_proba)
+                            roc_auc = roc_auc_score(y_test, y_test_proba)
+                            plt.figure(figsize=(6, 4))
+                            plt.plot(fpr, tpr, lw=1, color='red', linestyle='--', label='Krzywa ROC (AUC = %0.2f)' % roc_auc)
+                            plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
+                            plt.xlabel('False Positive Rate (FPR)')
+                            plt.ylabel('True Positive Rate (TPR)')
+                            plt.title('Krzywa ROC')
+                            plt.legend(loc='lower right')
+                            plt.yticks(np.arange(0, 1.1, 0.1))
+                            plt.xticks(np.arange(0, 1.1, 0.1))
+                            plt.grid(True)
+                            thresh_points = np.linspace(0, 1, num=10)
+                            for thresh_point in thresh_points:
+                                index = np.argmin(np.abs(thresholds - thresh_point))
+                                plt.scatter(fpr[index], tpr[index], c='blue', s=20)
+                                plt.annotate(f'{thresh_point:.2f}', (fpr[index], tpr[index]), textcoords="offset points", xytext=(10, -10), ha='center', fontsize=8)
+                            st.pyplot()
+
+                            from sklearn.metrics import precision_recall_curve, auc
+
+                            # Przekształć etykiety na 0 i 1
+                            y_test_binary = y_test
+
+                    with col3:
+                            precision, recall, thresholds = precision_recall_curve(y_test_binary, y_test_proba)
+                            auc_pr = auc(recall, precision)
+
+                            plt.figure(figsize=(6, 4))
+                            plt.plot(recall, precision, label='Krzywa Precyzja-Czułość (AUC-PR = {:.2f})'.format(auc_pr))
+                            plt.xlabel('Czułość (Recall)')
+                            plt.ylabel('Precyzja (Precision)')
+                            plt.title('Krzywa Precyzja-Czułość')
+                            plt.legend(loc='lower left')
+                            plt.yticks(np.arange(0, 1.1, 0.1))
+                            plt.xticks(np.arange(0, 1.1, 0.1))
                             plt.grid(True)
                             st.pyplot()
                             
-                        with col3:
-                            st.write('Wartości średnie pomiarów:')
-                            srednia_test = round(wyniki['test_accuracy'].mean(), 3)
-                            std_test = round(wyniki['test_accuracy'].std(), 3)
-                            srednia_train = round(wyniki['train_accuracy'].mean(), 3)
-                            std_train = round(wyniki['train_accuracy'].std(), 3)
-                            
-                            srednia_test_f = round(wyniki['test_f1'].mean(), 3)
-                            std_test_f  = round(wyniki['test_f1'].std(), 3)
-                            srednia_train_f  = round(wyniki['train_f1'].mean(), 3)
-                            std_train_f  = round(wyniki['train_f1'].std(), 3)             
-                            dat = {
-                                'Metric': ['Accuracy', 'Accuracy', 'F1 Score', 'F1 Score'],
-                                    'Dataset': ['Test', 'Train', 'Test', 'Train'],
-                                    'Mean': [srednia_test, srednia_train, srednia_test_f, srednia_train_f],
-                                    'Standard Deviation': [std_test, std_train, std_test_f, std_train_f] }
-
-                            srednie_wyniki_cv = pd.DataFrame(dat)
-                            st.dataframe(srednie_wyniki_cv)                    
-                            
-                            
-                            
-                        # with st.expander('Wykreśl krzywą uczenia'):
-                        #     col1, col2,col3= st.columns([1,1,1])
-                        
-                        #     # Tworzymy krzywą uczenia
-                        #     train_sizes, train_scores, test_scores = learning_curve(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv, scoring='accuracy', train_sizes=np.linspace(0.1, 1.0, 10))
-                        #     train_mean = np.mean(train_scores, axis=1)
-                        #     train_std = np.std(train_scores, axis=1)
-                        #     test_mean = np.mean(test_scores, axis=1)
-                        #     test_std = np.std(test_scores, axis=1)
-                        #     plt.plot(train_sizes, train_mean, marker='o', color='blue', label='Training accuracy')
-                        #     plt.fill_between(train_sizes, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')
-                        #     plt.plot(train_sizes, test_mean, marker='o', color='orange', label='Test accuracy')
-                        #     plt.fill_between(train_sizes, test_mean + test_std, test_mean - test_std, alpha=0.15, color='orange')
-                        #     plt.title('Learning Curve')
-                        #     plt.xlabel('Number of training examples')
-                        #     plt.ylabel('Accuracy')
-                        #     plt.legend()
-                        #     col1.pyplot()
-                        
-                            
             
-                        
-                        st.subheader('ETAP 7.  TRENOWANIE MODELU - RandomForestClassifier -  PREDYKCJA NA ZBIORZE TRENINGOWYM ')
-
-                        
-                        with st.container(border = True):
-                        
-                        
-                            st.write('')
-                            col1, col2= st.columns([2,1])
-                            
-                            with col1:
-                                
-                                cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
-                                        
-                                # Trenowanie modelu na całym zbiorze treningowym (opcjonalnie)
-                                pipe_DecisionTreeClassifier.fit(X_train, y_train)
-
-                                # Testowanie modelu na zbiorze testowym
-                                y_pred = pipe_DecisionTreeClassifier.predict(X_test)
-                                
-                                y_train_pred = cross_val_predict(pipe_DecisionTreeClassifier, X_train, y_train, cv=cv)
-
-
-                                def score_train():
-                                        cm_test = confusion_matrix(y_train, y_train_pred)
-                                        TP, FP, FN, TN = cm_test.ravel()
-                                        accuracy = (TP + TN) / (TP + TN + FP + FN)
-                                        error_ratio = (FP + FN) / (TP + TN + FP + FN)
-                                        precision_pos = TP / (TP + FP)
-                                        precision_neg = TN / (TN + FN)
-                                        recall_pos = TP / (TP + FN)
-                                        recall_neg = TN / (TN + FP)
-                                        f1_score = 2 * (precision_pos * recall_pos) / (precision_pos + recall_pos)
-                                        data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score'],
-                                                'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score]}
-                                        df = pd.DataFrame(data).set_index('miara')
-                                        return df
-
-                                st.dataframe(score_train().T)
-
-                            with col2:
-
-                                # Tworzymy wykres macierzy pomyłek
-                                cm_train = confusion_matrix(y_train, y_train_pred)
-                                classes = ['Klasa Negatywna', 'Klasa Pozytywna']  # Zdefiniuj nazwy klas
-                                disp = ConfusionMatrixDisplay(confusion_matrix=cm_train, display_labels=classes)
-                                disp.plot(cmap=plt.cm.Blues, values_format=".2f")
-                                plt.title("Macierz Pomyłek")
-                                plt.xlabel("Przewidziane etykiety")
-                                plt.ylabel("Rzeczywiste etykiety")
-                                st.pyplot()
                 
-                
-                
-                
-                
-                
-                
-                
-    
-                        st.subheader('ETAP 8.  OCENA MODELU  - RandomForestClassifier -  PREDYKCJA NA ZBIORZE TESTOWYM ')
-                        st.write('')
-                        
+                    st.subheader('ETAP 9.  Wyniki miar jakości klasyfikacji dla różnej wielkosci progu: ')
                     
+                    with st.container(border=True):
+                        col1, col2= st.columns([2,1])
                         
-                        pipe_DecisionTreeClassifier.fit(X_train, y_train)
-                        # Predykcja na danych testowych
-                        y_test_pred = pipe_DecisionTreeClassifier.predict(X_test)
+                        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+                        import pandas as pd
+                        import matplotlib.pyplot as plt
 
-                        # Prawdopodobieństwo przynależności do klasy pozytywnej (klasa 1) dla danych testowych
-                        y_test_proba = pipe_DecisionTreeClassifier.predict_proba(X_test)[:, 1]
+                        thresholds = np.arange(0, 1.01, 0.05)
 
+                        # Przekształć etykiety na 0 i 1
+                        y_test_binary = y_test
+
+                        accuracy_scores = []
+                        precision_scores = []
+                        recall_scores = []
+                        f1_scores = []
+                        confusion_matrices = []
+
+                        st.write("Wyniki miar jakości klasyfikacji dla różnej wielkosci progu:")
+                        st.write()
+                        # Testujemy różne progi
+                        threshold_results = []
+                        for thresh_point in thresholds:
+                            # Używamy wybranego progu do przekształcenia prawdopodobieństw na etykiety klasyfikacji
+                            y_test_pred_thresh = (y_test_proba >= thresh_point).astype(int)
+                            
+                            # Obliczamy miary jakości klasyfikacji dla danego progu
+                            accuracy = accuracy_score(y_test_binary, y_test_pred_thresh)
+                            precision = precision_score(y_test_binary, y_test_pred_thresh)
+                            recall = recall_score(y_test_binary, y_test_pred_thresh)
+                            f1 = f1_score(y_test_binary, y_test_pred_thresh)
+                            accuracy_scores.append(accuracy)
+                            precision_scores.append(precision)
+                            recall_scores.append(recall)
+                            f1_scores.append(f1)
+                            cm = confusion_matrix(y_test_binary, y_test_pred_thresh)
+                            TP, FP, FN, TN = cm.ravel()
+                            threshold_results.append((thresh_point, TP, FP, FN, TN, accuracy, precision, recall, f1))
+
+                        threshold_results_df = pd.DataFrame(threshold_results, columns=['Threshold', 'TP', 'FP', 'FN', 'TN','Accuracy', 'Precision', 'Recall', 'F1 Score'])
+                        col1.dataframe(threshold_results_df.sort_values(by='Threshold', ascending=True).T)
+                    
+
+
+                        # Tworzenie wykresu
+                        plt.figure(figsize=(10, 4))
+                        line_styles = ['-', '--', ':']  
+                        metric_names = ['Precision', 'Recall', 'F1 Score']
+                        for i, metric in enumerate([precision_scores, recall_scores, f1_scores]):
+                            plt.plot(thresholds, metric, label=metric_names[i], lw=1.5, linestyle=line_styles[i])
+                        plt.legend(fontsize='small')
+                        plt.xlabel('Próg', fontsize=12)
+                        plt.ylabel('Wartość miary', fontsize=12)
+                        plt.title('Miary jakości klasyfikacji dla różnych progów', fontsize=14)
+                        plt.xticks(np.arange(0, 1.1, 0.05))
+                        plt.grid(True, linestyle='--', alpha=0.2)
+
+                        col2.pyplot()
+
+
+
+                        st.write('')
+                        # Użyj wytrenowanego modelu na danych testowych przy ustalonym progu
+                        y_test_pred = (y_test_proba >= 0.45).astype(int)
 
                         def score_test():
                             cm_test = confusion_matrix(y_test, y_test_pred)
@@ -1369,336 +1531,186 @@ with st.container(border=True):
                             cohen_kappa = cohen_kappa_score(y_test, y_test_pred)
                             matthews_corrcoef_score = matthews_corrcoef(y_test, y_test_pred)
                             data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score',
-                                                    'roc_auc_test','cohen_kappa','matthews_corrcoef_score'],
-                                            'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score,
-                                                        roc_auc_test,cohen_kappa,matthews_corrcoef_score]}
+                                            'roc_auc_test','cohen_kappa','matthews_corrcoef_score'],
+                                    'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score,
+                                                roc_auc_test,cohen_kappa,matthews_corrcoef_score]}
                             df = pd.DataFrame(data).set_index('miara')
                             return df
 
-                
+                        st.write('')
+                        st.write('Wartości miar dla wybranego progu: [0.45]')
                         st.dataframe(score_test().T)
                         
-                        col1, col2, col3  =st.columns([1,1,1])  
-                        
-                        with col1:    
-                
-                                cm_test = confusion_matrix(y_test, y_test_pred)
-                                classes = ['nie zdał', 'zdał']  
-                                disp = ConfusionMatrixDisplay(confusion_matrix=cm_test, display_labels=classes)
-                                disp.plot(cmap=plt.cm.Blues, values_format=".2f")
-                                plt.title("Macierz Pomyłek")
-                                plt.xlabel("Przewidziane etykiety")
-                                plt.ylabel("Rzeczywiste etykiety")
-                                st.pyplot()
 
-                        with col2:
 
-                                # Oblicz krzywą ROC i pole pod krzywą ROC (AUC-ROC)
-                                fpr, tpr, thresholds = roc_curve(y_test, y_test_proba)
-                                roc_auc = roc_auc_score(y_test, y_test_proba)
-                                plt.figure(figsize=(6, 4))
-                                plt.plot(fpr, tpr, lw=1, color='red', linestyle='--', label='Krzywa ROC (AUC = %0.2f)' % roc_auc)
-                                plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
-                                plt.xlabel('False Positive Rate (FPR)')
-                                plt.ylabel('True Positive Rate (TPR)')
-                                plt.title('Krzywa ROC')
-                                plt.legend(loc='lower right')
-                                plt.yticks(np.arange(0, 1.1, 0.1))
-                                plt.xticks(np.arange(0, 1.1, 0.1))
-                                plt.grid(True)
-                                thresh_points = np.linspace(0, 1, num=10)
-                                for thresh_point in thresh_points:
-                                    index = np.argmin(np.abs(thresholds - thresh_point))
-                                    plt.scatter(fpr[index], tpr[index], c='blue', s=20)
-                                    plt.annotate(f'{thresh_point:.2f}', (fpr[index], tpr[index]), textcoords="offset points", xytext=(10, -10), ha='center', fontsize=8)
-                                st.pyplot()
 
-                                from sklearn.metrics import precision_recall_curve, auc
+                    st.write('ranking ważności cech')
 
-                                # Przekształć etykiety na 0 i 1
-                                y_test_binary = y_test
-
-                        with col3:
-                                precision, recall, thresholds = precision_recall_curve(y_test_binary, y_test_proba)
-                                auc_pr = auc(recall, precision)
-
-                                plt.figure(figsize=(6, 4))
-                                plt.plot(recall, precision, label='Krzywa Precyzja-Czułość (AUC-PR = {:.2f})'.format(auc_pr))
-                                plt.xlabel('Czułość (Recall)')
-                                plt.ylabel('Precyzja (Precision)')
-                                plt.title('Krzywa Precyzja-Czułość')
-                                plt.legend(loc='lower left')
-                                plt.yticks(np.arange(0, 1.1, 0.1))
-                                plt.xticks(np.arange(0, 1.1, 0.1))
-                                plt.grid(True)
-                                st.pyplot()
-                                
-                
+                    col1, col2 = st.columns([1,2])
+                    pipe_DecisionTreeClassifier.fit(X_train, y_train)
                     
-                        st.subheader('ETAP 9.  Wyniki miar jakości klasyfikacji dla różnej wielkosci progu: ')
-                        
-                        with st.container(border=True):
-                            col1, col2= st.columns([2,1])
-                            
-                            from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
-                            import pandas as pd
-                            import matplotlib.pyplot as plt
+                    lista = X_transformed_rounded.columns.tolist()
+                    # Pobranie ważności cech
+                    importances = model.feature_importances_
 
-                            thresholds = np.arange(0, 1.01, 0.05)
+                    # Pobranie nazw cech
+                    feature_names = lista
 
-                            # Przekształć etykiety na 0 i 1
-                            y_test_binary = y_test
+                    # Stworzenie DataFrame z nazwami cech i ich ważnościami
+                    feature_importances = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
 
-                            accuracy_scores = []
-                            precision_scores = []
-                            recall_scores = []
-                            f1_scores = []
-                            confusion_matrices = []
+                    # Posortowanie cech według ważności
+                    feature_importances = feature_importances.sort_values(by='Importance', ascending=False)
 
-                            st.write("Wyniki miar jakości klasyfikacji dla różnej wielkosci progu:")
-                            st.write()
-                            # Testujemy różne progi
-                            threshold_results = []
-                            for thresh_point in thresholds:
-                                # Używamy wybranego progu do przekształcenia prawdopodobieństw na etykiety klasyfikacji
-                                y_test_pred_thresh = (y_test_proba >= thresh_point).astype(int)
-                                
-                                # Obliczamy miary jakości klasyfikacji dla danego progu
-                                accuracy = accuracy_score(y_test_binary, y_test_pred_thresh)
-                                precision = precision_score(y_test_binary, y_test_pred_thresh)
-                                recall = recall_score(y_test_binary, y_test_pred_thresh)
-                                f1 = f1_score(y_test_binary, y_test_pred_thresh)
-                                accuracy_scores.append(accuracy)
-                                precision_scores.append(precision)
-                                recall_scores.append(recall)
-                                f1_scores.append(f1)
-                                cm = confusion_matrix(y_test_binary, y_test_pred_thresh)
-                                TP, FP, FN, TN = cm.ravel()
-                                threshold_results.append((thresh_point, TP, FP, FN, TN, accuracy, precision, recall, f1))
+                    # Wykres ważności cech
+                    plt.barh(feature_importances['Feature'], feature_importances['Importance'])
+                    plt.xlabel('Importance')
+                    plt.ylabel('Feature')
+                    plt.title('Feature Importance')
+                    col1.pyplot()
 
-                            threshold_results_df = pd.DataFrame(threshold_results, columns=['Threshold', 'TP', 'FP', 'FN', 'TN','Accuracy', 'Precision', 'Recall', 'F1 Score'])
-                            col1.dataframe(threshold_results_df.sort_values(by='Threshold', ascending=True).T)
-                        
-
-
-                            # Tworzenie wykresu
-                            plt.figure(figsize=(10, 4))
-                            line_styles = ['-', '--', ':']  
-                            metric_names = ['Precision', 'Recall', 'F1 Score']
-                            for i, metric in enumerate([precision_scores, recall_scores, f1_scores]):
-                                plt.plot(thresholds, metric, label=metric_names[i], lw=1.5, linestyle=line_styles[i])
-                            plt.legend(fontsize='small')
-                            plt.xlabel('Próg', fontsize=12)
-                            plt.ylabel('Wartość miary', fontsize=12)
-                            plt.title('Miary jakości klasyfikacji dla różnych progów', fontsize=14)
-                            plt.xticks(np.arange(0, 1.1, 0.05))
-                            plt.grid(True, linestyle='--', alpha=0.2)
-
-                            col2.pyplot()
-
-
-    
-                            st.write('')
-                            # Użyj wytrenowanego modelu na danych testowych przy ustalonym progu
-                            y_test_pred = (y_test_proba >= 0.45).astype(int)
-
-                            def score_test():
-                                cm_test = confusion_matrix(y_test, y_test_pred)
-                                TP, FP, FN, TN = cm_test.ravel()
-                                accuracy = (TP + TN) / (TP + TN + FP + FN)
-                                error_ratio = (FP + FN) / (TP + TN + FP + FN)
-                                precision_pos = TP / (TP + FP)
-                                precision_neg = TN / (TN + FN)
-                                recall_pos = TP / (TP + FN)
-                                recall_neg = TN / (TN + FP)
-                                f1_score = 2 * (precision_pos * recall_pos) / (precision_pos + recall_pos)
-                                roc_auc_test = roc_auc_score(y_test, y_test_proba)
-                                cohen_kappa = cohen_kappa_score(y_test, y_test_pred)
-                                matthews_corrcoef_score = matthews_corrcoef(y_test, y_test_pred)
-                                data = {'miara': ['TP', 'FP', 'FN', 'TN','accuracy','error_ratio', 'precision_pos','precision_neg','recall_pos', 'recall_neg','f1_score',
-                                                'roc_auc_test','cohen_kappa','matthews_corrcoef_score'],
-                                        'wartość': [TP, FP, FN, TN,accuracy,error_ratio, precision_pos,precision_neg,recall_pos, recall_neg,f1_score,
-                                                    roc_auc_test,cohen_kappa,matthews_corrcoef_score]}
-                                df = pd.DataFrame(data).set_index('miara')
-                                return df
-
-                            st.write('')
-                            st.write('Wartości miar dla wybranego progu: [0.45]')
-                            st.dataframe(score_test().T)
-                            
-
-
-
-                        st.write('ranking ważności cech')
-
-                        col1, col2 = st.columns([1,2])
-                        pipe_DecisionTreeClassifier.fit(X_train, y_train)
-                        
-                        lista = X_transformed_rounded.columns.tolist()
-                        # Pobranie ważności cech
-                        importances = model.feature_importances_
-
-                        # Pobranie nazw cech
-                        feature_names = lista
-
-                        # Stworzenie DataFrame z nazwami cech i ich ważnościami
-                        feature_importances = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
-
-                        # Posortowanie cech według ważności
-                        feature_importances = feature_importances.sort_values(by='Importance', ascending=False)
-
-                        # Wykres ważności cech
-                        plt.barh(feature_importances['Feature'], feature_importances['Importance'])
-                        plt.xlabel('Importance')
-                        plt.ylabel('Feature')
-                        plt.title('Feature Importance')
-                        col1.pyplot()
-
-                    else: pass
+            
 
 
     with tab7:
-        if typ_ladowania == 'Dane demonstracyjne':
-            st.subheader('W tej wersji aplikacji do analizy mozna wybrac jedynie dataset : "szkoła"')
-            if wybrane_dane =='szkoła':
-                with st.container(border = True):
-                        st.write('Wprowdź nowe dane do modelu:')
-                        st.write('')
+      
+            with st.container(border = True):
+                st.write('Wprowdź nowe dane do modelu:')
+                st.write('')
 
-                        col1, col2, col3, col4  = st.columns(4, gap = 'large')
-                        with col1:
-        
-                            # Płeć
-                            #st.write('# Płeć')
-                            selected_gender = st.selectbox('Wybierz płeć:', df['płeć'].unique())
+                col1, col2, col3, col4  = st.columns(4, gap = 'large')
+                with col1:
 
-                            # Pali
-                            #st.write('### Pali')
-                            selected_smoke = st.selectbox('Czy pali:', df['pali'].unique())
+                    # Płeć
+                    #st.write('# Płeć')
+                    selected_gender = st.selectbox('Wybierz płeć:', df['płeć'].unique())
 
-                            # Wykształcenie
-                            #st.write('### Wykształcenie')
-                            selected_education = st.selectbox('Wybierz wykształcenie:', df['wykształcenie'].unique())
-                        
+                    # Pali
+                    #st.write('### Pali')
+                    selected_smoke = st.selectbox('Czy pali:', df['pali'].unique())
 
-                            # Liczba osób
-                            #st.write('### Liczba osób')
-                            selected_persons = st.number_input('Podaj liczbę osób:', min_value=0)
-
-                            # Typ szkoły
-                            #st.write('### Typ szkoły')
-                            selected_school_type = st.selectbox('Wybierz typ szkoły:', df['typ szkoły'].unique())
-
-                        with col2:
-                            # Dochód roczny
-                            #st.write('### Dochód roczny')
-                            selected_income = st.number_input('Podaj dochód roczny:', min_value=1)
-
-                            # Średnia ocen semestralna
-                            #st.write('### Średnia ocen semestralna')
-                            selected_grades = st.number_input('Podaj średnią ocen semestralną:', min_value=1.0, max_value=6.0, step=0.1, value = 3.5)
-
-                            # Tryb nauki
-                            #st.write('### Tryb nauki')
-                            selected_study_mode = st.selectbox('Wybierz tryb nauki:', df['tryb nauki'].unique())
-
-                            # Zamieszkanie
-                            #st.write('### Zamieszkanie')
-                            selected_residence = st.selectbox('Wybierz miejsce zamieszkania:', df['zamieszkanie'].unique())
-                            
-                        with col3:
-
-                            # Problemy z rówieśnikami
-                            #st.write('### Problemy z rówieśnikami')
-                            selected_peer_problems = st.selectbox('Czy występują problemy z rówieśnikami:', df['problemy z rówieśnikami'].unique())
-
+                    # Wykształcenie
+                    #st.write('### Wykształcenie')
+                    selected_education = st.selectbox('Wybierz wykształcenie:', df['wykształcenie'].unique())
                 
-                            # Czas do szkoły (min)
-                            #st.write('### Czas do szkoły (min)')
-                            selected_time_to_school = st.number_input('Podaj czas do szkoły (min):', min_value=1)
 
-                            # Godziny nauki przed egzaminem
-                            #st.write('### Godziny nauki przed egzaminem')
-                            selected_study_hours = st.number_input('Podaj godziny nauki przed egzaminem:', min_value=1)
+                    # Liczba osób
+                    #st.write('### Liczba osób')
+                    selected_persons = st.number_input('Podaj liczbę osób:', min_value=0)
 
-                            # Nadużywanie alkoholuionTreeClassifier.predict(new_d
-                            #st.write('### Nadużywanie alkoholu')
-                            selected_alcohol_abuse = st.selectbox('Czy występuje nadużywanie alkoholu:', df['nadużywanie alkoholu'].unique())
+                    # Typ szkoły
+                    #st.write('### Typ szkoły')
+                    selected_school_type = st.selectbox('Wybierz typ szkoły:', df['typ szkoły'].unique())
 
-                        with col4:
-                            # Poziom stresu
-                            #st.write('### Poziom stresu')
-                            selected_stress_level = st.number_input('Podaj poziom stresu:', min_value=0)
+                with col2:
+                    # Dochód roczny
+                    #st.write('### Dochód roczny')
+                    selected_income = st.number_input('Podaj dochód roczny:', min_value=1)
 
-                            # Korzystanie z korepetycji
-                            #st.write('### Korzystanie z korepetycji')
-                            selected_tutoring = st.selectbox('Czy korzysta z korepetycji:', df['korzystanie z korepetycji'].unique())
+                    # Średnia ocen semestralna
+                    #st.write('### Średnia ocen semestralna')
+                    selected_grades = st.number_input('Podaj średnią ocen semestralną:', min_value=1.0, max_value=6.0, step=0.1, value = 3.5)
 
-                            # Czas spędzany tygodniu na social mediach w godz
-                            #st.write('### Czas spędzany tygodniu na social mediach w godz')
-                            selected_social_media_time = st.number_input('Podaj czas spędzany na social mediach (godz):', min_value=0)
+                    # Tryb nauki
+                    #st.write('### Tryb nauki')
+                    selected_study_mode = st.selectbox('Wybierz tryb nauki:', df['tryb nauki'].unique())
 
-                            # Ulubione social media
-                            #st.write('### Ulubione social media')
-                            selected_social_media = st.selectbox('Wybierz ulubione social media:', df['ulubione social media'].unique())
+                    # Zamieszkanie
+                    #st.write('### Zamieszkanie')
+                    selected_residence = st.selectbox('Wybierz miejsce zamieszkania:', df['zamieszkanie'].unique())
+                    
+                with col3:
+
+                    # Problemy z rówieśnikami
+                    #st.write('### Problemy z rówieśnikami')
+                    selected_peer_problems = st.selectbox('Czy występują problemy z rówieśnikami:', df['problemy z rówieśnikami'].unique())
+
+        
+                    # Czas do szkoły (min)
+                    #st.write('### Czas do szkoły (min)')
+                    selected_time_to_school = st.number_input('Podaj czas do szkoły (min):', min_value=1)
+
+                    # Godziny nauki przed egzaminem
+                    #st.write('### Godziny nauki przed egzaminem')
+                    selected_study_hours = st.number_input('Podaj godziny nauki przed egzaminem:', min_value=1)
+
+                    # Nadużywanie alkoholuionTreeClassifier.predict(new_d
+                    #st.write('### Nadużywanie alkoholu')
+                    selected_alcohol_abuse = st.selectbox('Czy występuje nadużywanie alkoholu:', df['nadużywanie alkoholu'].unique())
+
+                with col4:
+                    # Poziom stresu
+                    #st.write('### Poziom stresu')
+                    selected_stress_level = st.number_input('Podaj poziom stresu:', min_value=0)
+
+                    # Korzystanie z korepetycji
+                    #st.write('### Korzystanie z korepetycji')
+                    selected_tutoring = st.selectbox('Czy korzysta z korepetycji:', df['korzystanie z korepetycji'].unique())
+
+                    # Czas spędzany tygodniu na social mediach w godz
+                    #st.write('### Czas spędzany tygodniu na social mediach w godz')
+                    selected_social_media_time = st.number_input('Podaj czas spędzany na social mediach (godz):', min_value=0)
+
+                    # Ulubione social media
+                    #st.write('### Ulubione social media')
+                    selected_social_media = st.selectbox('Wybierz ulubione social media:', df['ulubione social media'].unique())
+                    
+                    
+                    
+                    # Utwórz nowy dataframe na podstawie wyborów użytkownika
+                    new_df = pd.DataFrame({
+                        'płeć': [selected_gender],
+                        'pali': [selected_smoke],
+                        'wykształcenie': [selected_education],
+                        'liczba osób': [selected_persons],
+                        'typ szkoły': [selected_school_type],
+                        'dochód roczny': [selected_income],
+                        'srednia ocen sem': [selected_grades],
+                        'tryb nauki': [selected_study_mode],
+                        'zamieszkanie': [selected_residence],
+                        'problemy z rówieśnikami': [selected_peer_problems],
+                        'czas do szkoły min': [selected_time_to_school],
+                        'godzin nauki przed egzaminem': [selected_study_hours],
+                        'nadużywanie alkoholu': [selected_alcohol_abuse],
+                        'poziom stresu': [selected_stress_level],
+                        'korzystanie z korepetycji': [selected_tutoring],
+                        'czas spedzany tygodniu na social mediach w godz': [selected_social_media_time],
+                        'ulubione social media': [selected_social_media]
+                    })
+
+
+                    
+                    
+            with st.container(border = True):
+                    st.write('Wynik klasyfikacji modelu:')
                             
+                    st.write('Nowy dataframe:')
+                    st.write(new_df)
+                    
+                    go  = st.button('Klasyfikuj!')
+                    if go:
+                        pipe_DecisionTreeClassifier.fit(X_train, y_train)
+                        # Przewidywanie klasy dla nowego wiersza danych
+                        predicted_class = pipe_DecisionTreeClassifier.predict(new_df)
+                        st.write('Wynik klasyfikacji modelu:')
+                        st.write('')
+                        if predicted_class == 0:
+                            st.subheader('Nie zdał' )
+                        else:
+                            st.subheader('Zdał')
                             
-                            
-                            # Utwórz nowy dataframe na podstawie wyborów użytkownika
-                            new_df = pd.DataFrame({
-                                'płeć': [selected_gender],
-                                'pali': [selected_smoke],
-                                'wykształcenie': [selected_education],
-                                'liczba osób': [selected_persons],
-                                'typ szkoły': [selected_school_type],
-                                'dochód roczny': [selected_income],
-                                'srednia ocen sem': [selected_grades],
-                                'tryb nauki': [selected_study_mode],
-                                'zamieszkanie': [selected_residence],
-                                'problemy z rówieśnikami': [selected_peer_problems],
-                                'czas do szkoły min': [selected_time_to_school],
-                                'godzin nauki przed egzaminem': [selected_study_hours],
-                                'nadużywanie alkoholu': [selected_alcohol_abuse],
-                                'poziom stresu': [selected_stress_level],
-                                'korzystanie z korepetycji': [selected_tutoring],
-                                'czas spedzany tygodniu na social mediach w godz': [selected_social_media_time],
-                                'ulubione social media': [selected_social_media]
-                            })
-
 
                             
-                            
-                with st.container(border = True):
-                            st.write('Wynik klasyfikacji modelu:')
-                                    
-                            st.write('Nowy dataframe:')
-                            st.write(new_df)
-                            
-                            go  = st.button('Klasyfikuj!')
-                            if go:
-                                pipe_DecisionTreeClassifier.fit(X_train, y_train)
-                                # Przewidywanie klasy dla nowego wiersza danych
-                                predicted_class = pipe_DecisionTreeClassifier.predict(new_df)
-                                st.write('Wynik klasyfikacji modelu:')
-                                st.write('')
-                                if predicted_class == 0:
-                                    st.subheader('Nie zdał' )
-                                else:
-                                    st.subheader('Zdał')
-                                    
-          
-                                    
-                            else : pass
-                            
-                           
+        
+                    
+                
 
-                            # st.write('Przewidziana kategoria 0 - nie zda, 1- zda')
-                            # st.write(predicted_class)
+                    # st.write('Przewidziana kategoria 0 - nie zda, 1- zda')
+                    # st.write(predicted_class)
 
 
-                            #ValueError: columns are missing: {'czas spedzany tygodniu na social mediach w godz', 'srednia ocen sem'}
+                    #ValueError: columns are missing: {'czas spedzany tygodniu na social mediach w godz', 'srednia ocen sem'}
 
-            else : pass
 
 
 
