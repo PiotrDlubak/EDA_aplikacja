@@ -1721,7 +1721,7 @@ with st.container(border=True):
             from openai import OpenAI
             import streamlit as st
             
-            st.markdown("Pomoc z użyciem modelu: gpt-3.5-turbo")
+            st.markdown("Pomoc z użyciem modelu: GPT")
             st.write("w trakcie testów....")
             
             #api_key = st.secrets["klucz"]
@@ -1748,32 +1748,32 @@ with st.container(border=True):
             
             #client = OpenAI(api_key=st.secrets["klucz"])
             
-            import streamlit as st
-            from openai import OpenAI
+            # import streamlit as st
+            # from openai import OpenAI
 
             
-            #openai_api_key = st.text_input("Wprowadź OpenAI API Key", key="chatbot_api_key", type="password")
-            openai_api_key = api_key = st.secrets["klucz"]
+            # #openai_api_key = st.text_input("Wprowadź OpenAI API Key", key="chatbot_api_key", type="password")
+            # openai_api_key = api_key = st.secrets["klucz"]
 
-            st.title("💬 Jak zapytasz to odpowiem ....")
+            # st.title("💬 Jak zapytasz to odpowiem ....")
 
-            if "messages" not in st.session_state:
-                st.session_state["messages"] = [{"role": "assistant", "content": "Jak mogę Ci pomóc?"}]
+            # if "messages" not in st.session_state:
+            #     st.session_state["messages"] = [{"role": "assistant", "content": "Jak mogę Ci pomóc?"}]
 
-            for msg in st.session_state.messages:
-                st.chat_message(msg["role"]).write(msg["content"])
+            # for msg in st.session_state.messages:
+            #     st.chat_message(msg["role"]).write(msg["content"])
 
-            if prompt := st.chat_input():
-                if not openai_api_key:
-                    st.info("Please add your OpenAI API key to continue.")
-                    st.stop()
+            # if prompt := st.chat_input():
+            #     if not openai_api_key:
+            #         st.info("Please add your OpenAI API key to continue.")
+            #         st.stop()
 
-                client = OpenAI(api_key=openai_api_key)
-                st.session_state.messages.append({"role": "user", "content": prompt})
-                st.chat_message("user").write(prompt)
-                response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
-                msg = response.choices[0].message.content
-                st.session_state.messages.append({"role": "assistant", "content": msg})
+            #     client = OpenAI(api_key=openai_api_key)
+            #     st.session_state.messages.append({"role": "user", "content": prompt})
+            #     st.chat_message("user").write(prompt)
+            #     response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
+            #     msg = response.choices[0].message.content
+            #     st.session_state.messages.append({"role": "assistant", "content": msg})
                 
-                st.chat_message("assistant").write(msg)
+            #     st.chat_message("assistant").write(msg)
 
