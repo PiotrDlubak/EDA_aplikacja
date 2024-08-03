@@ -260,7 +260,7 @@ with st.container(border=True):
 
 
                         
-                    st.set_option('deprecation.showPyplotGlobalUse', False)   
+                    
                     if typ_analizy== 'analiza jednej zmiennej kategorialnej':
 
                         st.write(f':blue[ustaw parametry analizy:  { (typ_analizy)}] ')
